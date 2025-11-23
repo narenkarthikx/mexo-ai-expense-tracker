@@ -1,6 +1,6 @@
-# ExpenseAI - Smart Expense Tracker PWA 🚀
+# 💰 ExpenseAI - Smart Expense Tracker with AI Receipt Processing
 
-A modern, AI-powered Progressive Web App for smart expense tracking with automated receipt processing, budget management, and financial analytics.
+A modern, AI-powered expense tracking Progressive Web App (PWA) built with Next.js 16 and Google Gemini AI.
 
 ## ✨ Features
 
@@ -27,16 +27,16 @@ A modern, AI-powered Progressive Web App for smart expense tracking with automat
 
 ## 🚀 Quick Start
 
-Ready to get started? Check out our detailed [Installation Guide](docs/INSTALLATION.md).
+Ready to get started? Check out our detailed [Setup Guide](docs/setup.md).
 
 **TL;DR:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/narenkarthikx/expense-tracker-ai.git
 cd expense-tracker-pwa
-npm install
-cp .env.example .env.local
+pnpm install
+cp .env.local.example .env.local
 # Edit .env.local with your API keys
-npm run dev
+pnpm dev
 ```
 
 ## 🛠️ Technology Stack
@@ -44,14 +44,14 @@ npm run dev
 - **Frontend**: Next.js 16, React 19, TypeScript
 - **Styling**: Tailwind CSS, Shadcn/ui components  
 - **Backend**: Supabase (PostgreSQL + Auth + Real-time)
-- **AI**: OpenAI GPT-4 Vision for receipt processing
+- **AI**: Google Gemini AI for receipt processing
 - **PWA**: Service workers, offline support, installable
 
 ## � How It Works
 
 ### Smart Receipt Processing
 1. **Take a Photo**: Snap or upload receipt images
-2. **AI Extraction**: OpenAI GPT-4 Vision reads and structures the data
+2. **AI Extraction**: Google Gemini AI reads and structures the data
 3. **Auto-populate**: All fields filled automatically (store, items, prices, totals)
 4. **Review & Save**: Quick review and save to your expense tracker
 
@@ -95,13 +95,15 @@ vercel --prod
 **Important**: Set these environment variables in your hosting platform:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `OPENAI_API_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GOOGLE_GEMINI_API_KEY`
 
 ## 📚 Documentation
 
-- **[Installation Guide](docs/INSTALLATION.md)**: Step-by-step setup instructions
-- **[Development Guide](docs/DEVELOPMENT.md)**: Technical documentation and architecture
-- **[Contributing](docs/CONTRIBUTING.md)**: How to contribute to the project
+- **[Setup Guide](docs/setup.md)**: Complete development environment setup
+- **[Database Guide](docs/database.md)**: Database schema and configuration
+- **[AI Integration](docs/ai-integration.md)**: Google Gemini AI receipt processing
+- **[Documentation Hub](docs/README.md)**: Full documentation index
 
 ## 🆘 Common Issues
 
@@ -114,12 +116,12 @@ vercel --prod
 - Verify database tables are created
 
 **AI features not working?**
-- Confirm your OpenAI API key is valid
-- Ensure you have sufficient credits
+- Confirm your Google Gemini API key is valid
+- Check the model name is correct (gemini-2.5-flash)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please read our [Contributing Guide](docs/CONTRIBUTING.md) for details on how to submit pull requests, report issues, and suggest improvements.
+We welcome contributions! Please see our [Documentation Hub](docs/README.md) for technical details and contribution guidelines.
 
 ## 📄 License
 
@@ -127,6 +129,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using Next.js, Supabase, and OpenAI**
+**Built with ❤️ using Next.js, Supabase, and Google Gemini AI**
 
 ⭐ Star this repo if you find it helpful!

@@ -1,45 +1,84 @@
-# Documentation
+# Expense Tracker PWA Documentation
 
-Welcome to ExpenseAI documentation! This folder contains all the guides and technical documentation for the project.
+Welcome to the comprehensive documentation for the Expense Tracker Progressive Web App (PWA). This documentation provides detailed information for developers, users, and contributors.
 
-## 📖 Available Guides
+## 📚 Documentation Structure
 
-### [📥 Installation Guide](INSTALLATION.md)
-**Start here!** Complete step-by-step setup instructions including:
-- Prerequisites and requirements
-- Environment configuration
-- API key setup (Supabase + OpenAI)
-- Database initialization
-- Troubleshooting tips
+### For Developers
+- **[Setup & Installation](./setup.md)** - Complete development environment setup
+- **[Database Guide](./database.md)** - Database schema, setup, and management
+- **[API Reference](./api.md)** - All API endpoints and usage
+- **[AI Integration](./ai-integration.md)** - Google Gemini AI receipt processing
+- **[Architecture](./architecture.md)** - Application structure and design patterns
 
-### [⚙️ Development Guide](DEVELOPMENT.md)
-Technical documentation for developers including:
-- Project architecture and structure
-- Authentication flow
-- Database schema
-- AI processing implementation
-- Development workflow
+### For Users
+- **[User Guide](./user-guide.md)** - How to use the application
+- **[Features](./features.md)** - Complete feature overview
+- **[FAQ](./faq.md)** - Frequently asked questions
 
-### [🤝 Contributing Guide](CONTRIBUTING.md)
-Guidelines for contributing to the project:
-- Code standards and best practices
-- Pull request process
-- Issue reporting
-- Development setup
+### For Contributors
+- **[Contributing](./contributing.md)** - How to contribute to the project
+- **[Development Workflow](./workflow.md)** - Git workflow and best practices
+- **[Testing](./testing.md)** - Testing guidelines and procedures
 
-## 🚀 Quick Links
+## 🚀 Quick Start
 
-- **[← Back to Main README](../README.md)** - Project overview and features
-- **[📄 License](../LICENSE)** - MIT License details
-- **[🗃️ Database Schema](../scripts/init-database.sql)** - SQL initialization script
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/expense-tracker-pwa.git
+   cd expense-tracker-pwa
+   ```
 
-## 📞 Need Help?
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
 
-1. **Installation Issues**: Check [INSTALLATION.md](INSTALLATION.md)
-2. **Development Questions**: See [DEVELOPMENT.md](DEVELOPMENT.md)
-3. **Want to Contribute**: Read [CONTRIBUTING.md](CONTRIBUTING.md)
-4. **Bug Reports**: Create an issue on GitHub
+3. **Set up the database**
+   - Follow the [Database Guide](./database.md)
+   - Run the complete setup script in your Supabase instance
 
----
+4. **Configure environment**
+   ```bash
+   cp .env.local.example .env.local
+   # Edit .env.local with your credentials
+   ```
 
-*Documentation last updated: November 2025*
+5. **Start development server**
+   ```bash
+   pnpm dev
+   ```
+
+## 🔧 Key Features
+
+- **💰 Expense Tracking** - Manual and AI-powered receipt scanning
+- **📊 Analytics** - Detailed spending insights and trends
+- **🎯 Budget Management** - Set and track spending limits
+- **📱 PWA Support** - Install as native app on mobile devices
+- **🤖 AI Receipt Processing** - Automatic expense extraction from receipts
+- **🔒 Secure Authentication** - Supabase auth integration
+
+## 🛠️ Technology Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **AI**: Google Gemini AI (gemini-2.5-flash model)
+- **Deployment**: Vercel (recommended)
+- **Package Manager**: pnpm
+
+## 📖 Additional Resources
+
+- [Project README](../README.md) - Basic project information
+- [Environment Variables](./environment.md) - Complete env setup guide
+- [Deployment Guide](./deployment.md) - Production deployment instructions
+- [Troubleshooting](./troubleshooting.md) - Common issues and solutions
+
+## 🤝 Support
+
+- Create an [issue](https://github.com/yourusername/expense-tracker-pwa/issues) for bug reports
+- Join our [discussions](https://github.com/yourusername/expense-tracker-pwa/discussions) for questions
+- Check the [FAQ](./faq.md) for common questions
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
