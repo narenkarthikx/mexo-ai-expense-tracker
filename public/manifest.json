@@ -1,6 +1,6 @@
 {
-  "name": "ExpenseAI - Smart Expense Tracker",
-  "short_name": "ExpenseAI",
+  "name": "Mexo-My Expenses Optimized - Smart Expense Tracker",
+  "short_name": "Mexo-My Expenses Optimized",
   "description": "AI-powered expense tracker with receipt scanning and financial analytics",
   "start_url": "/",
   "scope": "/",

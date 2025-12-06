@@ -1,4 +1,4 @@
-# 💰 ExpenseAI - Smart Expense Tracker with AI Receipt Processing
+# 💰 Mexo-My Expenses Optimized - Smart Expense Tracker with AI Receipt Processing
 
 A modern, AI-powered expense tracking Progressive Web App (PWA) built with Next.js 16 and Google Gemini AI.
 

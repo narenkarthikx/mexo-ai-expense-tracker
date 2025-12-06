@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseai-v1"
+const CACHE_NAME = "Mexo-My Expenses Optimized-v1"
 const urlsToCache = ["/", "/dashboard", "/expenses", "/budget", "/analytics", "/manifest.json"]
 
 self.addEventListener("install", (event: ExtendableEvent) => {

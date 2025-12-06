@@ -9,13 +9,13 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ExpenseAI - Smart Expense Tracker",
+  title: "Mexo",
   description: "AI-powered expense tracker with receipt scanning, budget management, and financial analytics",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ExpenseAI",
+    title: "Mexo-My Expenses Optimized",
   },
   formatDetection: {
     telephone: false,

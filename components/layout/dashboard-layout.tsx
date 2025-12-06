@@ -44,7 +44,7 @@ export default function DashboardLayout({
           <div className="p-6 border-b border-border flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                ExpenseAI
+                Mexo
               </h2>
               <p className="text-xs text-muted-foreground mt-1">Smart Tracking</p>
             </div>
