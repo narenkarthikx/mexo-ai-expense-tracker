@@ -169,16 +169,16 @@ export default function SimpleExpenseForm() {
   return (
     <div className="space-y-6">
       {/* Main Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+      <div className="text-center space-y-1">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
           Choose Your Method
         </h2>
-        <p className="text-muted-foreground">Add expenses using AI receipt scanning or manual entry</p>
+        <p className="text-sm text-muted-foreground">Add expenses using AI receipt scanning or manual entry</p>
       </div>
 
       {/* AI Receipt Upload - Primary Method */}
-      <Card className="p-6 border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <Card className="p-5 border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
           <Upload className="w-6 h-6 text-blue-500" />
           📸 AI Receipt Scanner
           <Badge className="ml-auto bg-blue-100 text-blue-700">Recommended</Badge>
@@ -207,8 +207,8 @@ export default function SimpleExpenseForm() {
       </Card>
 
       {/* Manual Entry - Secondary Method */}
-      <Card className="p-6 border border-gray-200 bg-gradient-to-br from-gray-50/50 to-slate-50/50">
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <Card className="p-5 border border-gray-200 bg-gradient-to-br from-gray-50/50 to-slate-50/50">
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
           <Plus className="w-6 h-6 text-green-500" />
           ✏️ Manual Entry
           <Badge variant="outline" className="ml-auto">Traditional</Badge>

@@ -130,16 +130,16 @@ export default function ExpenseInsights() {
   const isIncreased = dailyChange > 0
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
+    <Card className="p-5 bg-gradient-to-br from-card to-card/50">
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <Target className="w-5 h-5 text-primary" />
           Smart Insights
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {/* Daily Comparison */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
               {isIncreased ? (
                 <TrendingUp className="w-4 h-4 text-red-500" />
@@ -147,35 +147,35 @@ export default function ExpenseInsights() {
                 <TrendingDown className="w-4 h-4 text-green-500" />
               )}
               <span className="text-sm font-medium">
-                {isIncreased ? 'Spent More' : 'Saved Today'}
+                {isIncreased ? 'Spent More' : 'Saved'}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground break-words">
-              ₹{Math.abs(dailyChange).toFixed(0)} vs yesterday
+            <p className="text-sm text-muted-foreground">
+              ₹{Math.abs(dailyChange).toFixed(0)}
             </p>
           </div>
 
           {/* Streak */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Flame className={`w-4 h-4 ${insights.streak.type === 'saving' ? 'text-green-500' : 'text-orange-500'}`} />
               <span className="text-sm font-medium">
-                {insights.streak.days} Day Streak
+                {insights.streak.days} Day
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {insights.streak.type === 'saving' ? 'Smart spending!' : 'Active spending'}
+            <p className="text-sm text-muted-foreground">
+              {insights.streak.type === 'saving' ? 'Saving' : 'Spending'}
             </p>
           </div>
 
           {/* Top Category */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium">Top Expense</span>
+              <span className="text-sm font-medium">Top</span>
             </div>
-            <p className="text-xs text-muted-foreground break-words">
-              {insights.topCategory.name} - ₹{insights.topCategory.amount.toFixed(0)}
+            <p className="text-sm text-muted-foreground truncate">
+              {insights.topCategory.name}
             </p>
           </div>
 

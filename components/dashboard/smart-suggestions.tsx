@@ -181,14 +181,14 @@ export default function SmartSuggestions() {
 
   if (loading) {
     return (
-      <Card className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-muted rounded w-1/3"></div>
-          <div className="space-y-3">
+      <Card className="p-3">
+        <div className="animate-pulse space-y-2">
+          <div className="h-3 bg-muted rounded w-1/4"></div>
+          <div className="space-y-1">
             {[1, 2].map(i => (
-              <div key={i} className="space-y-2">
-                <div className="h-3 bg-muted rounded w-full"></div>
-                <div className="h-3 bg-muted rounded w-2/3"></div>
+              <div key={i} className="space-y-1">
+                <div className="h-2 bg-muted rounded w-full"></div>
+                <div className="h-2 bg-muted rounded w-2/3"></div>
               </div>
             ))}
           </div>
@@ -198,9 +198,9 @@ export default function SmartSuggestions() {
   }
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
+    <Card className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold flex items-center gap-2">
           <Lightbulb className="w-5 h-5 text-amber-500" />
           Smart Suggestions
         </h3>

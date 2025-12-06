@@ -73,20 +73,20 @@ export default function RecentExpenses() {
   }
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-card/50">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
-          Recent Expenses
+    <Card className="p-3 bg-gradient-to-br from-card to-card/50">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold flex items-center gap-1">
+          <TrendingUp className="w-3 h-3 text-primary" />
+          Recent
         </h3>
         <Link href="/expenses">
-          <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
-            View All
+          <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 text-xs h-6 px-1">
+            All
           </Button>
         </Link>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         {expenses.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No expenses recorded yet</p>
