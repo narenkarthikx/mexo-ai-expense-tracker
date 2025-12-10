@@ -114,15 +114,15 @@ export default function ExpenseOverviewEnhanced() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div className="text-center p-3 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200">
             <div className="text-xs sm:text-sm text-green-600 font-medium mb-1">Today</div>
-            <div className="text-lg sm:text-xl font-bold text-green-700 break-all">${stats.today.toFixed(2)}</div>
+            <div className="text-lg sm:text-xl font-bold text-green-700 break-all">₹{stats.today.toFixed(0)}</div>
           </div>
           <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-200">
             <div className="text-xs sm:text-sm text-blue-600 font-medium mb-1">This Week</div>
-            <div className="text-lg sm:text-xl font-bold text-blue-700 break-all">${stats.thisWeek.toFixed(2)}</div>
+            <div className="text-lg sm:text-xl font-bold text-blue-700 break-all">₹{stats.thisWeek.toFixed(0)}</div>
           </div>
           <div className="text-center p-3 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200">
             <div className="text-xs sm:text-sm text-purple-600 font-medium mb-1">This Month</div>
-            <div className="text-lg sm:text-xl font-bold text-purple-700 break-all">${stats.thisMonth.toFixed(2)}</div>
+            <div className="text-lg sm:text-xl font-bold text-purple-700 break-all">₹{stats.thisMonth.toFixed(0)}</div>
           </div>
         </div>
 
@@ -163,7 +163,7 @@ export default function ExpenseOverviewEnhanced() {
             <div className="flex items-center justify-between flex-wrap gap-1">
               <span className="text-indigo-700 font-medium text-xs">{stats.topCategory.name}</span>
               <Badge className="bg-indigo-100 text-indigo-800 text-xs h-5">
-                ${stats.topCategory.amount.toFixed(2)}
+                ₹{stats.topCategory.amount.toFixed(0)}
               </Badge>
             </div>
           </div>

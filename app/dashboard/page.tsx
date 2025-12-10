@@ -9,9 +9,7 @@ import RecentExpenses from "@/components/dashboard/recent-expenses"
 import QuickAddExpense from "@/components/dashboard/quick-add-expense"
 import ExpenseInsights from "@/components/dashboard/expense-insights"
 import SmartSuggestions from "@/components/dashboard/smart-suggestions"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Loader } from "lucide-react"
+import { Loader, TrendingUp } from "lucide-react"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -38,30 +36,29 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 gap-6">
-          <QuickAddExpense />
-        </div>
-
-        {/* Enhanced Overview and Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-2">
+          <TrendingUp className="w-7 h-7 text-primary" />
           <div>
-            <ExpenseOverviewEnhanced />
-          </div>
-          <div>
-            <ExpenseInsights />
+    
+            <p className="text-sm text-muted-foreground">Your financial overview at a glance</p>
           </div>
         </div>
 
-        {/* Recent Expenses and Suggestions */}
+        {/* Quick Add - Priority Action */}
+        <QuickAddExpense />
+
+        {/* Main Overview - Single Column for Better Focus */}
+        <ExpenseOverviewEnhanced />
+
+        {/* Two Column Layout for Supporting Info */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <RecentExpenses />
-          </div>
-          <div>
-            <SmartSuggestions />
-          </div>
+          <RecentExpenses />
+          <ExpenseInsights />
         </div>
+
+        {/* Smart Suggestions at Bottom */}
+        <SmartSuggestions />
       </div>
     </DashboardLayout>
   )

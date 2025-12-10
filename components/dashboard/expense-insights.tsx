@@ -86,13 +86,62 @@ export default function ExpenseInsights() {
       const frequentMerchant = Object.entries(merchantCounts)
         .sort(([,a], [,b]) => b - a)[0]?.[0] || 'Various stores'
 
-      // Calculate streak (simplified)
-      const streak = todaySpent < yesterdaySpent 
-        ? { days: Math.floor(Math.random() * 7) + 1, type: 'saving' as const }
-        : { days: Math.floor(Math.random() * 5) + 1, type: 'spending' as const }
+      // Calculate real streak by checking consecutive days
+      const { data: last30Days } = await supabase
+        .from("expenses")
+        .select("date, amount")
+        .eq("user_id", user.id)
+        .gte("date", new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .order("date", { ascending: false })
+      
+      let streakDays = 0
+      let streakType: 'saving' | 'spending' = 'saving'
+      const dailyTotals: { [key: string]: number } = {}
+      
+      last30Days?.forEach(e => {
+        dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount
+      })
+      
+      const sortedDates = Object.keys(dailyTotals).sort().reverse()
+      let previousAmount = dailyTotals[sortedDates[0]] || 0
+      
+      for (let i = 1; i < sortedDates.length; i++) {
+        const currentAmount = dailyTotals[sortedDates[i]]
+        if (currentAmount < previousAmount) {
+          streakDays++
+          streakType = 'saving'
+        } else if (currentAmount > previousAmount) {
+          if (streakType === 'saving') break
+          streakDays++
+          streakType = 'spending'
+        }
+        previousAmount = currentAmount
+      }
+      
+      const streak = { days: Math.max(1, streakDays), type: streakType }
 
-      // Budget status (mock for now)
-      const budgetStatus = { onTrack: 3, exceeded: 1 }
+      // Calculate real budget status from database
+      const { data: budgets } = await supabase
+        .from("budgets")
+        .select("*")
+        .eq("user_id", user.id)
+      
+      let onTrack = 0
+      let exceeded = 0
+      
+      budgets?.forEach(budget => {
+        const categorySpent = categoryTotals[budget.category] || 0
+        if (categorySpent <= budget.limit) {
+          onTrack++
+        } else {
+          exceeded++
+        }
+      })
+      
+      const budgetStatus = { 
+        onTrack: budgets && budgets.length > 0 ? onTrack : 0, 
+        exceeded: budgets && budgets.length > 0 ? exceeded : 0 
+      }
 
       setInsights({
         todaySpent,

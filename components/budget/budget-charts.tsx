@@ -129,7 +129,7 @@ export default function BudgetCharts() {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
+            <Tooltip formatter={(value: any) => `₹${value.toFixed(0)}`} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
@@ -142,7 +142,7 @@ export default function BudgetCharts() {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
             <XAxis dataKey="category" style={{ fontSize: "12px" }} />
             <YAxis style={{ fontSize: "12px" }} />
-            <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
+            <Tooltip formatter={(value: any) => `₹${value.toFixed(0)}`} />
             <Bar dataKey="budget" fill="#06b6d4" radius={[8, 8, 0, 0]} />
             <Bar dataKey="spent" fill="#ec4899" radius={[8, 8, 0, 0]} />
           </BarChart>

@@ -31,7 +31,10 @@ export default function PDFExport() {
         .lte("date", today.toISOString().split("T")[0])
         .order("date", { ascending: false })
 
-      const { data: budgets } = await supabase.from("budgets").select("*").eq("user_id", user.id)
+      const { data: budgets } = await supabase
+        .from("budgets")
+        .select("*")
+        .eq("user_id", user.id)
 
       // Create PDF
       const pdf = new jsPDF()
@@ -49,18 +52,18 @@ export default function PDFExport() {
 
       // Summary Stats
       const totalExpenses = expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0
-      const totalBudget = budgets?.reduce((sum, b) => sum + b.limit_amount, 0) || 0
+      const totalBudget = budgets?.reduce((sum, b) => sum + b.limit, 0) || 0
 
       pdf.setFontSize(12)
       pdf.text("Summary", 20, yPosition)
       yPosition += 8
 
       pdf.setFontSize(10)
-      pdf.text(`Total Spent: $${totalExpenses.toFixed(2)}`, 25, yPosition)
+      pdf.text(`Total Spent: ₹${totalExpenses.toFixed(0)}`, 25, yPosition)
       yPosition += 6
-      pdf.text(`Total Budget: $${totalBudget.toFixed(2)}`, 25, yPosition)
+      pdf.text(`Total Budget: ₹${totalBudget.toFixed(0)}`, 25, yPosition)
       yPosition += 6
-      pdf.text(`Remaining: $${(totalBudget - totalExpenses).toFixed(2)}`, 25, yPosition)
+      pdf.text(`Remaining: ₹${(totalBudget - totalExpenses).toFixed(0)}`, 25, yPosition)
       yPosition += 12
 
       // Expenses Table
@@ -72,13 +75,14 @@ export default function PDFExport() {
         const expenseTableData = expenses.map((exp) => [
           exp.date,
           exp.description || "N/A",
-          `$${exp.amount.toFixed(2)}`,
+          exp.category || "Other",
+          `₹${exp.amount.toFixed(0)}`,
         ])
 
         const autoTable = pdf as any
         autoTable.autoTable({
           startY: yPosition,
-          head: [["Date", "Description", "Amount"]],
+          head: [["Date", "Description", "Category", "Amount"]],
           body: expenseTableData,
           margin: { left: 20, right: 20 },
         })

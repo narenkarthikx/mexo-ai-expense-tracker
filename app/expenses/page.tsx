@@ -8,6 +8,7 @@ import ExpenseFilters from "@/components/expenses/expense-filters"
 import SimpleExpenseForm from "@/components/simple-expense-form"
 import { Receipt } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
+import { Card } from "@/components/ui/card"
 
 export default function ExpensesPage() {
   const { user, loading } = useAuth()
@@ -42,20 +43,36 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Receipt className="w-8 h-8 text-primary" />
+      <div className="flex items-center gap-3 mb-2">
+        <Receipt className="w-7 h-7 text-primary" />
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Add & Manage Expenses</h1>
-          <p className="text-muted-foreground">Smart AI receipt processing or manual entry - all in one place</p>
+          <p className="text-sm text-muted-foreground">Add new expenses and view your spending history</p>
         </div>
       </div>
 
-      {/* Simple Form */}
-      <SimpleExpenseForm />
+      {/* Add Expense Section */}
+      <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/0">
+        <h2 className="text-lg font-semibold mb-4">Add New Expense</h2>
+        <SimpleExpenseForm />
+      </Card>
 
-      {/* Filters and List */}
-      <ExpenseFilters onFiltersChange={handleFiltersChange} />
-      <ExpenseList filters={filters} />
+      {/* Divider */}
+      <div className="relative py-4">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border"></div>
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
+            Your Expenses
+          </span>
+        </div>
+      </div>
+
+      {/* Filters and List Section */}
+      <div className="space-y-4">
+        <ExpenseFilters onFiltersChange={handleFiltersChange} />
+        <ExpenseList filters={filters} />
+      </div>
     </div>
   )
 }

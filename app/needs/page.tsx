@@ -3,12 +3,14 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth/auth-provider"
 import DashboardLayout from "@/components/layout/dashboard-layout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Trash2, Loader, ShoppingCart, Flag } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
+import { Spinner } from "@/components/ui/spinner"
 
 interface WishlistItem {
   id: string
@@ -37,8 +39,7 @@ const PRIORITY_CONFIG = {
 
 export default function NeedsPage() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
-  const [mounted, setMounted] = useState(false)
+  const { user, loading: authLoading } = useAuth()
   const [items, setItems] = useState<WishlistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [itemName, setItemName] = useState("")
@@ -47,15 +48,12 @@ export default function NeedsPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    setMounted(true)
-    const userData = localStorage.getItem("user")
-    if (!userData) {
+    if (!authLoading && !user) {
       router.push("/")
-    } else {
-      setUser(JSON.parse(userData))
+    } else if (user) {
       fetchWishlist()
     }
-  }, [router])
+  }, [user, authLoading, router])
 
   const fetchWishlist = async () => {
     try {
@@ -116,129 +114,92 @@ export default function NeedsPage() {
     }
   }
 
-  if (!mounted || !user) return null
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner />
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   const totalEstimated = items.reduce((acc, item) => acc + (item.estimated_cost || 0), 0)
   const highPriority = items.filter((i) => i.priority === "high").length
 
   return (
-    <DashboardLayout user={user}>
+    <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
-            <ShoppingCart className="w-8 h-8 text-primary" />
-            Shopping List & Needs
-          </h1>
-          <p className="text-muted-foreground mt-2">Plan future purchases and organize your wishlist</p>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-2">
+          <ShoppingCart className="w-7 h-7 text-primary" />
+          <div>
+            
+            <p className="text-sm text-muted-foreground">Plan and track future purchases</p>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <p className="text-sm text-muted-foreground">Total Items</p>
-            <p className="text-3xl font-bold text-primary mt-2">{items.length}</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="p-4 text-center bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <p className="text-2xl font-bold text-primary">{items.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Items</p>
           </Card>
-          <Card className="p-4 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-            <p className="text-sm text-muted-foreground">High Priority</p>
-            <p className="text-3xl font-bold text-accent mt-2">{highPriority}</p>
+          <Card className="p-4 text-center bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{highPriority}</p>
+            <p className="text-xs text-muted-foreground mt-1">High Priority</p>
           </Card>
-          <Card className="p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <p className="text-sm text-muted-foreground">Estimated Cost</p>
-            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">${totalEstimated.toFixed(2)}</p>
+          <Card className="p-4 text-center bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{totalEstimated.toFixed(0)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Total Cost</p>
           </Card>
         </div>
 
-        {/* Add Item Form */}
-        <Card className="p-6 bg-gradient-to-br from-card to-card/50">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-primary" />
-            Add to Shopping List
-          </h3>
-          <form onSubmit={handleAddItem} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Item Name</label>
-              <Input
-                type="text"
-                placeholder="e.g., Winter Jacket"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                className="h-11 bg-input border-border"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Estimated Cost</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={estimatedCost}
-                    onChange={(e) => setEstimatedCost(e.target.value)}
-                    step="0.01"
-                    className="pl-7 h-11 bg-input border-border"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Priority</label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-input rounded-lg bg-input"
-                >
-                  <option value="high">High Priority</option>
-                  <option value="medium">Medium Priority</option>
-                  <option value="low">Low Priority</option>
-                </select>
-              </div>
-            </div>
-            <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Item to List
-            </Button>
-          </form>
-        </Card>
-
-        {/* Items List */}
+        {/* Items List First */}
         {loading ? (
           <Card className="p-12 flex items-center justify-center">
             <Loader className="w-6 h-6 animate-spin text-primary" />
           </Card>
         ) : items.length === 0 ? (
-          <Card className="p-12 text-center bg-gradient-to-br from-card to-card/50">
-            <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-semibold text-foreground">Your shopping list is empty</p>
-            <p className="text-muted-foreground mt-1">Start adding items you plan to buy</p>
+          <Card className="p-8 text-center bg-gradient-to-br from-muted/30 to-muted/10">
+            <ShoppingCart className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+            <p className="font-medium text-foreground">Your list is empty</p>
+            <p className="text-sm text-muted-foreground mt-1">Add items you want to buy below</p>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-2">YOUR ITEMS ({items.length})</h3>
             {items.map((item) => {
               const config = PRIORITY_CONFIG[item.priority as keyof typeof PRIORITY_CONFIG] || PRIORITY_CONFIG.medium
               return (
                 <Card
                   key={item.id}
-                  className={`p-5 bg-gradient-to-r from-card to-card/50 border-primary/5 hover:border-primary/20 transition-all group flex items-center justify-between`}
+                  className="p-4 transition-all group hover:shadow-md border-l-4"
+                  style={{ 
+                    borderLeftColor: item.priority === 'high' ? 'rgb(239, 68, 68)' : item.priority === 'medium' ? 'rgb(234, 179, 8)' : 'rgb(34, 197, 94)' 
+                  }}
                 >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <Flag
-                      className={`w-5 h-5 flex-shrink-0 text-${item.priority === "high" ? "destructive" : item.priority === "medium" ? "accent" : "green-600"}`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground text-lg">{item.item_name}</p>
-                      {item.estimated_cost && (
-                        <p className="text-sm text-muted-foreground">Estimated: ${item.estimated_cost.toFixed(2)}</p>
-                      )}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`p-2 rounded-lg ${config.bg}`}>
+                        <Flag className="w-4 h-4" style={{ color: item.priority === 'high' ? 'rgb(239, 68, 68)' : item.priority === 'medium' ? 'rgb(234, 179, 8)' : 'rgb(34, 197, 94)' }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">{item.item_name}</p>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          {item.estimated_cost > 0 && (
+                            <span className="text-sm font-medium text-primary">₹{item.estimated_cost.toFixed(0)}</span>
+                          )}
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${config.bg} ${config.text}`}>
+                            {item.priority}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4 ml-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${config.bg} ${config.text}`}>
-                      {item.priority?.charAt(0).toUpperCase() + item.priority?.slice(1)}
-                    </span>
                     <button
                       onClick={() => handleDeleteItem(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-2 text-destructive hover:bg-destructive/10 rounded transition-all"
+                      title="Remove item"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -248,6 +209,52 @@ export default function NeedsPage() {
             })}
           </div>
         )}
+
+        {/* Add Item Form - Bottom */}
+        <Card className="p-5 bg-gradient-to-br from-primary/5 to-primary/0 border-primary/20">
+          <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-primary" />
+            Add New Item
+          </h3>
+          <form onSubmit={handleAddItem} className="space-y-3">
+            <Input
+              type="text"
+              placeholder="Item name (e.g., Winter Jacket)"
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              className="h-10"
+              required
+            />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-1">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                  <Input
+                    type="number"
+                    placeholder="Cost"
+                    value={estimatedCost}
+                    onChange={(e) => setEstimatedCost(e.target.value)}
+                    step="100"
+                    className="pl-7 h-10"
+                  />
+                </div>
+              </div>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className="col-span-1 px-3 py-2 border border-input rounded-lg bg-background text-sm"
+              >
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <Button type="submit" className="col-span-1 h-10">
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
     </DashboardLayout>
   )

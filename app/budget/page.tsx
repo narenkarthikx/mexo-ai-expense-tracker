@@ -1,48 +1,47 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth/auth-provider"
 import DashboardLayout from "@/components/layout/dashboard-layout"
 import BudgetManager from "@/components/budget/budget-manager"
-import BudgetCharts from "@/components/budget/budget-charts"
 import { PiggyBank } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function BudgetPage() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
-  const [mounted, setMounted] = useState(false)
+  const { user, loading } = useAuth()
 
   useEffect(() => {
-    setMounted(true)
-    const userData = localStorage.getItem("user")
-    if (!userData) {
+    if (!loading && !user) {
       router.push("/")
-    } else {
-      setUser(JSON.parse(userData))
     }
-  }, [router])
+  }, [user, loading, router])
 
-  if (!mounted) return null
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner />
+      </div>
+    )
+  }
+
   if (!user) return null
 
   return (
-    <DashboardLayout user={user}>
+    <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
-            <PiggyBank className="w-8 h-8 text-primary" />
-            Budget Management
-          </h1>
-          <p className="text-muted-foreground mt-2">Set and monitor spending limits for each category</p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <BudgetManager />
-          </div>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-2">
+          <PiggyBank className="w-7 h-7 text-primary" />
           <div>
-            <BudgetCharts />
+            <h1 className="text-3xl font-bold tracking-tight">Budget Tracker</h1>
+            <p className="text-sm text-muted-foreground">Set spending limits and monitor your budget health</p>
           </div>
         </div>
+
+        {/* Budget Manager - Primary Action */}
+        <BudgetManager />
       </div>
     </DashboardLayout>
   )

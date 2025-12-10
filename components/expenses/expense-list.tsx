@@ -3,8 +3,18 @@
 import { useEffect, useState, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trash2, Loader, Calendar } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Trash2, Loader, Calendar, ChevronRight, FileText, CreditCard, MapPin, X, ShoppingCart, Utensils, Car, ShoppingBag, Heart, Popcorn, Zap, Plane, Fuel, MoreHorizontal } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 
 interface Expense {
   id: string
@@ -14,6 +24,9 @@ interface Expense {
   category: string
   merchant?: string
   ai_confidence?: number
+  receipt_url?: string
+  extracted_data?: any
+  payment_method?: string
 }
 
 interface ExpenseListProps {
@@ -25,17 +38,17 @@ interface ExpenseListProps {
   }
 }
 
-const CATEGORY_ICONS: { [key: string]: string } = {
-  Groceries: "🛒",
-  Dining: "🍽️",
-  Transportation: "🚗",
-  Shopping: "🛍️",
-  Healthcare: "⚕️",
-  Entertainment: "🎬",
-  Utilities: "💡",
-  Travel: "✈️",
-  Gas: "⛽",
-  Other: "📌",
+const CATEGORY_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  Groceries: ShoppingCart,
+  Dining: Utensils,
+  Transportation: Car,
+  Shopping: ShoppingBag,
+  Healthcare: Heart,
+  Entertainment: Popcorn,
+  Utilities: Zap,
+  Travel: Plane,
+  Gas: Fuel,
+  Other: MoreHorizontal,
 }
 
 function getDateRange(filter: string) {
@@ -65,10 +78,25 @@ function getDateRange(filter: string) {
   }
 }
 
+function groupExpensesByDate(expenses: Expense[]) {
+  const groups: { [key: string]: Expense[] } = {}
+  
+  expenses.forEach(expense => {
+    const dateKey = expense.date
+    if (!groups[dateKey]) {
+      groups[dateKey] = []
+    }
+    groups[dateKey].push(expense)
+  })
+  
+  return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))
+}
+
 export default function ExpenseList({ filters }: ExpenseListProps) {
   const [allExpenses, setAllExpenses] = useState<Expense[]>([])
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -101,7 +129,6 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
   const applyFilters = useCallback(() => {
     let filtered = [...allExpenses]
 
-    // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       filtered = filtered.filter(expense => 
@@ -111,12 +138,10 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
       )
     }
 
-    // Category filter
     if (filters.category && filters.category !== 'All') {
       filtered = filtered.filter(expense => expense.category === filters.category)
     }
 
-    // Date filter
     if (filters.dateFilter && filters.dateFilter !== 'all') {
       if (filters.dateFilter === 'custom' && (filters.dateRange.start || filters.dateRange.end)) {
         if (filters.dateRange.start) {
@@ -145,6 +170,7 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
 
     if (!error) {
       setAllExpenses(prev => prev.filter((e) => e.id !== id))
+      setSelectedExpense(null)
     }
   }
 
@@ -168,6 +194,27 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
         weekday: "short",
         month: "short",
         day: "numeric",
+        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined
+      })
+    }
+  }
+
+  const formatDateHeader = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+    const expenseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    
+    if (expenseDate.getTime() === today.getTime()) {
+      return 'Today'
+    } else if (expenseDate.getTime() === yesterday.getTime()) {
+      return 'Yesterday'
+    } else {
+      return date.toLocaleDateString("en-IN", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
         year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined
       })
     }
@@ -197,59 +244,179 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
     )
   }
 
+  const groupedExpenses = groupExpensesByDate(filteredExpenses)
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredExpenses.length} of {allExpenses.length} expenses
-        </p>
-        <p className="text-sm font-medium">
-          Total: ${filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(2)}
-        </p>
+    <>
+      <div className="space-y-3">
+        {/* Summary Bar */}
+        <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">
+              {filteredExpenses.length} {filteredExpenses.length === 1 ? 'expense' : 'expenses'} • {groupedExpenses.length} {groupedExpenses.length === 1 ? 'day' : 'days'}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-bold text-primary">
+              ₹{filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(0)}
+            </p>
+          </div>
+        </div>
+        
+        {/* Date-wise Grouped Expenses */}
+        {groupedExpenses.map(([date, expenses]) => {
+          const dayTotal = expenses.reduce((sum, exp) => sum + exp.amount, 0)
+          return (
+            <div key={date} className="space-y-1.5">
+              {/* Date Header */}
+              <div className="sticky top-0 z-10 flex items-center justify-between py-1.5 px-3 bg-muted/80 backdrop-blur-sm rounded-md border border-border">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <h3 className="font-semibold text-xs">{formatDateHeader(date)}</h3>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {expenses.length}
+                  </Badge>
+                </div>
+                <p className="text-xs font-bold text-primary">₹{dayTotal.toFixed(0)}</p>
+              </div>
+
+              {/* Expenses for this date */}
+              <div className="space-y-1.5 pl-1">
+                {expenses.map((expense) => (
+                  <Card
+                    key={expense.id}
+                    onClick={() => setSelectedExpense(expense)}
+                    className="p-2.5 hover:shadow-md transition-all bg-card border-l-2 border-l-primary/20 hover:border-l-primary group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Left: Icon & Details */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+                          {(() => {
+                            const Icon = CATEGORY_ICONS[expense.category] || MoreHorizontal
+                            return <Icon className="w-4 h-4 text-primary" />
+                          })()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground truncate text-sm">{expense.description}</p>
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
+                            {expense.merchant && (
+                              <div className="flex items-center gap-0.5">
+                                <MapPin className="w-2.5 h-2.5" />
+                                <span className="truncate">{expense.merchant}</span>
+                              </div>
+                            )}
+                            {expense.category && (
+                              <>
+                                {expense.merchant && <span>•</span>}
+                                <span>{expense.category}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Amount & Actions */}
+                      <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-base font-bold text-primary tabular-nums">₹{expense.amount.toFixed(0)}</p>
+                          <div className="flex items-center gap-1 justify-end mt-0.5">
+                            {expense.ai_confidence && expense.ai_confidence > 0.7 && (
+                              <Badge className="text-[9px] px-1 py-0 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                AI
+                              </Badge>
+                            )}
+                            {expense.payment_method && (
+                              <Badge variant="outline" className="text-[9px] px-1 py-0">
+                                <CreditCard className="w-2.5 h-2.5 mr-0.5" />
+                                {expense.payment_method}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
-      
-      {filteredExpenses.map((expense) => (
-        <Card
-          key={expense.id}
-          className="p-4 hover:shadow-md transition-all bg-gradient-to-r from-card to-card/50 border-primary/5 hover:border-primary/20 group"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="text-2xl">{CATEGORY_ICONS[expense.category] || "📌"}</div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <p className="font-semibold text-foreground truncate">{expense.description}</p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
-                  <span suppressHydrationWarning>{formatDate(expense.date)}</span>
-                  {expense.merchant && (
-                    <>
-                      <span>•</span>
-                      <span>{expense.merchant}</span>
-                    </>
+
+      {/* Expense Detail Drawer */}
+      <Drawer open={!!selectedExpense} onOpenChange={(open) => !open && setSelectedExpense(null)}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-lg">
+            <DrawerHeader className="pb-3">
+              <DrawerTitle className="text-lg font-bold">{selectedExpense?.description}</DrawerTitle>
+            </DrawerHeader>
+            
+            {selectedExpense && (
+              <div className="px-6 pb-4 space-y-4">
+                {/* Amount */}
+                <div className="text-center py-3 bg-primary/5 rounded-lg">
+                  <p className="text-3xl font-bold text-primary">₹{selectedExpense.amount.toFixed(0)}</p>
+                </div>
+
+                {/* Simple List */}
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">Date</span>
+                    <span className="font-medium">
+                      {new Date(selectedExpense.date).toLocaleDateString('en-IN', { 
+                        day: 'numeric', 
+                        month: 'short', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">Category</span>
+                    <span className="font-medium">{selectedExpense.category}</span>
+                  </div>
+
+                  {selectedExpense.merchant && (
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-muted-foreground">Merchant</span>
+                      <span className="font-medium">{selectedExpense.merchant}</span>
+                    </div>
                   )}
-                  {expense.ai_confidence && expense.ai_confidence > 0.8 && (
-                    <Badge variant="secondary" className="text-xs">
-                      AI Scanned
-                    </Badge>
+
+                  {selectedExpense.payment_method && (
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-muted-foreground">Payment</span>
+                      <span className="font-medium">{selectedExpense.payment_method}</span>
+                    </div>
+                  )}
+
+                  {selectedExpense.ai_confidence && selectedExpense.ai_confidence > 0.7 && (
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-muted-foreground">Source</span>
+                      <span className="font-medium text-blue-600">AI Receipt ({(selectedExpense.ai_confidence * 100).toFixed(0)}%)</span>
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 ml-4">
-              <div className="text-right">
-                <p className="text-xl font-bold text-primary tabular-nums">₹{expense.amount.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">{expense.category}</p>
-              </div>
-              <button
-                onClick={() => handleDelete(expense.id)}
-                className="opacity-0 group-hover:opacity-100 p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-all"
+            )}
+
+            <DrawerFooter className="flex flex-row gap-2 pt-2">
+              <Button 
+                variant="destructive" 
+                onClick={() => selectedExpense && handleDelete(selectedExpense.id)}
+                className="flex-1"
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+                Delete
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="outline" className="flex-1">Close</Button>
+              </DrawerClose>
+            </DrawerFooter>
           </div>
-        </Card>
-      ))}
-    </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   )
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader, Trash2, TrendingUp } from "lucide-react"
+import { Loader, Trash2, TrendingUp, ShoppingCart, Utensils, Car, ShoppingBag, Heart, Popcorn, Zap, Plane, Fuel, MoreHorizontal } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
 import Link from "next/link"
 
@@ -15,15 +15,20 @@ interface Expense {
   category: string
 }
 
-const CATEGORY_ICONS: { [key: string]: string } = {
-  Groceries: "🛒",
-  "Food & Dining": "🍽️",
-  Utilities: "💡",
-  Housing: "🏠",
-  Transport: "🚗",
-  Entertainment: "🎬",
-  Health: "⚕️",
-  Other: "📌",
+const CATEGORY_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  Groceries: ShoppingCart,
+  Dining: Utensils,
+  "Food & Dining": Utensils,
+  Transportation: Car,
+  Transport: Car,
+  Shopping: ShoppingBag,
+  Healthcare: Heart,
+  Health: Heart,
+  Entertainment: Popcorn,
+  Utilities: Zap,
+  Travel: Plane,
+  Gas: Fuel,
+  Other: MoreHorizontal,
 }
 
 export default function RecentExpenses() {
@@ -73,50 +78,60 @@ export default function RecentExpenses() {
   }
 
   return (
-    <Card className="p-3 bg-gradient-to-br from-card to-card/50">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold flex items-center gap-1">
-          <TrendingUp className="w-3 h-3 text-primary" />
-          Recent
+    <Card className="p-4 bg-gradient-to-br from-card to-muted/10">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-primary" />
+          Recent Expenses
         </h3>
         <Link href="/expenses">
-          <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 text-xs h-6 px-1">
-            All
+          <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 text-xs h-7 px-2">
+            View All →
           </Button>
         </Link>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         {expenses.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No expenses recorded yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Start by adding your first expense</p>
+          <div className="text-center py-8">
+            <p className="text-sm text-muted-foreground">No expenses yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Add your first expense to get started</p>
           </div>
         ) : (
           expenses.map((expense) => (
             <div
               key={expense.id}
-              className="flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/60 rounded-lg transition-colors group"
+              className="flex items-center justify-between p-3 bg-background/50 hover:bg-muted/50 rounded-lg transition-all group border border-transparent hover:border-primary/20"
             >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="text-2xl">{CATEGORY_ICONS[expense.category] || "📌"}</div>
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+                  {(() => {
+                    const Icon = CATEGORY_ICONS[expense.category] || MoreHorizontal
+                    return <Icon className="w-4 h-4 text-primary" />
+                  })()}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{expense.description}</p>
-                  <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-                    {typeof window !== 'undefined' 
-                      ? new Date(expense.date).toLocaleDateString() 
-                      : expense.date
-                    }
-                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <p className="text-xs text-muted-foreground" suppressHydrationWarning>
+                      {typeof window !== 'undefined' 
+                        ? new Date(expense.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : expense.date
+                      }
+                    </p>
+                    <span className="text-xs text-muted-foreground">•</span>
+                    <span className="text-xs text-muted-foreground">{expense.category}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 ml-2">
-                <p className="font-bold text-primary tabular-nums">-${expense.amount.toFixed(2)}</p>
+              <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                <p className="font-bold text-sm text-primary tabular-nums">₹{expense.amount.toFixed(0)}</p>
                 <button
                   onClick={() => handleDelete(expense.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-destructive hover:bg-destructive/10 rounded transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1.5 text-destructive hover:bg-destructive/10 rounded transition-all"
+                  title="Delete"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

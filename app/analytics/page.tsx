@@ -32,21 +32,25 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-primary" />
-            Financial Analytics
-          </h1>
-          <p className="text-muted-foreground mt-2">Analyze spending patterns and trends</p>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <BarChart3 className="w-7 h-7 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+            <p className="text-sm text-muted-foreground">Insights into your spending patterns</p>
+          </div>
         </div>
         <PDFExport />
       </div>
+
+      {/* Monthly Overview - Primary Section */}
       <MonthlyOverview />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CategoryAnalytics />
-        <SpendingTrends />
-      </div>
+
+      {/* Category & Trends */}
+      <CategoryAnalytics />
+      
+      <SpendingTrends />
     </div>
   )
 }
