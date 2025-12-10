@@ -98,6 +98,17 @@ ADD COLUMN IF NOT EXISTS payment_method VARCHAR(100);
 ALTER TABLE expenses 
 ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'Other';
 
+-- User categories table for custom category management
+CREATE TABLE IF NOT EXISTS user_categories (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  categories TEXT[] NOT NULL DEFAULT ARRAY['Groceries', 'Dining', 'Transportation', 'Shopping', 'Healthcare', 'Entertainment', 'Utilities', 'Travel', 'Gas', 'Other'],
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Index for faster category lookups
+CREATE INDEX IF NOT EXISTS idx_user_categories_user_id ON user_categories(user_id);
+
 -- Add system flag to categories
 ALTER TABLE categories 
 ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT false;

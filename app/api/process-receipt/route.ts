@@ -73,50 +73,72 @@ export async function POST(request: NextRequest) {
               content: [
                 {
                   type: "text",
-                  text: `You are a receipt OCR system. Your PRIMARY GOAL is to extract the TOTAL AMOUNT accurately.
+                  text: `You are a professional receipt OCR scanner. Extract data with HIGH ACCURACY.
 
-Look for these keywords on the receipt for the final amount:
-- "TOTAL", "Total", "Grand Total", "Net Total"
-- "Amount Payable", "Amount Due", "Bill Amount"
-- The LARGEST number on the receipt (usually at the bottom)
+PRIORITY ORDER:
+1. TOTAL amount (MOST CRITICAL)
+2. Store name
+3. Each item with exact price
+4. Date
 
-Extract in this EXACT JSON format:
-
+JSON FORMAT (strict):
 {
-  "store_name": "store name from top of receipt",
+  "store_name": "exact store name",
   "date": "YYYY-MM-DD",
-  "items": [{"description": "item name", "quantity": 1, "price": 0.00}],
+  "items": [{"description": "product name", "quantity": 1, "price": 0.00}],
   "subtotal": 0.00,
   "tax": 0.00,
   "total": 0.00,
   "category": "category"
 }
 
-CRITICAL RULES FOR TOTAL:
-1. Look for the word "TOTAL" or similar - this is the MOST IMPORTANT number
-2. If you see "₹500" or "Rs. 500" near "TOTAL", use 500
-3. The total is usually the last/bottom-most amount on the receipt
-4. If subtotal is 450 and tax is 50, then total MUST be 500
-5. Total should be >= subtotal
-6. Round to 2 decimal places
+CRITICAL EXTRACTION RULES:
 
-CATEGORIES (match store to category):
-- Groceries: Big Bazaar, DMart, Reliance Fresh, More, vegetable shops
+TOTAL (HIGHEST PRIORITY):
+- Find the word "TOTAL" / "Grand Total" / "Net Amount" / "Amount Payable"
+- This is THE MOST IMPORTANT number - get it RIGHT
+- Usually at the bottom of receipt
+- If you see ₹1,234 or Rs. 1234, extract as 1234.00
+- Total must equal: (sum of all item prices) + tax
+- Verify: total >= subtotal
+
+ITEMS (IMPORTANT):
+- Extract EVERY item listed on the receipt
+- Format: {"description": "exact product name", "quantity": qty, "price": unit_price}
+- Do NOT include tax, discounts, or totals as items
+- Only actual products/services
+- Examples:
+  * "Milk 1L" → {"description": "Milk 1L", "quantity": 1, "price": 65.00}
+  * "Rice 5kg x2" → {"description": "Rice 5kg", "quantity": 2, "price": 450.00}
+
+STORE NAME:
+- Usually at the TOP of receipt in large text
+- Extract exact name (e.g., "Big Bazaar", "Reliance Fresh")
+
+DATE:
+- Look for date format: DD/MM/YYYY or DD-MM-YYYY
+- Convert to YYYY-MM-DD
+- If unclear, use today's date: ${new Date().toISOString().split('T')[0]}
+
+CATEGORY (auto-detect):
+- Groceries: Big Bazaar, DMart, Reliance, More, supermarkets, food items
 - Dining: restaurants, Swiggy, Zomato, cafes, food delivery
-- Transportation: petrol pumps, metro, taxi, Uber, Ola
-- Shopping: clothing, electronics, Amazon, Flipkart, malls
-- Healthcare: Apollo, medical stores, hospitals
-- Entertainment: PVR, movies, games
-- Utilities: Jio, Airtel, electricity, internet bills
-- Travel: hotels, flights, train tickets
-- Gas: ONLY vehicle fuel (petrol/diesel)
-- Other: anything else
+- Transportation: petrol pumps (HP, BPCL, Indian Oil), metro, taxi, Ola, Uber
+- Shopping: clothing, electronics, Amazon, Flipkart, lifestyle stores
+- Healthcare: Apollo, MedPlus, hospitals, medical stores
+- Entertainment: PVR, INOX, movies, games
+- Utilities: Jio, Airtel, Vi, electricity, water, internet bills
+- Travel: hotels, flights, IRCTC, buses
+- Gas: petrol/diesel ONLY (vehicle fuel)
+- Other: if none match
 
-EXAMPLE:
-If receipt shows "Big Bazaar" at top and "TOTAL: Rs. 1,234" at bottom, return:
-{"store_name": "Big Bazaar", "total": 1234.00, "category": "Groceries", ...}
+VALIDATION:
+✓ total = subtotal + tax (must match)
+✓ subtotal = sum of (item.price × item.quantity)
+✓ All numbers are positive
+✓ Category is one of the listed options
 
-Return ONLY valid JSON, no extra text.`
+Return ONLY valid JSON. NO explanations.`
                 },
                 {
                   type: "image",

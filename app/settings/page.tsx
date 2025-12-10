@@ -11,7 +11,8 @@ import { useAuth } from "@/components/auth/auth-provider"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { LogOut, User, Bell, Shield, Trash2, Save } from "lucide-react"
+import { LogOut, User, Bell, Shield, Trash2, Save, FolderKanban } from "lucide-react"
+import { CategoryManager } from "@/components/settings/category-manager"
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -126,6 +127,22 @@ export default function SettingsPage() {
             <Save className="w-4 h-4 mr-2" />
             Save Changes
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Category Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FolderKanban className="w-5 h-5" />
+            Expense Categories
+          </CardTitle>
+          <CardDescription>
+            Manage your custom expense categories for better organization
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CategoryManager />
         </CardContent>
       </Card>
 

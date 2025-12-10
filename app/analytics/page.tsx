@@ -33,15 +33,16 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <BarChart3 className="w-7 h-7 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
             <p className="text-sm text-muted-foreground">Insights into your spending patterns</p>
           </div>
         </div>
-        <PDFExport />
+        <div className="flex-shrink-0">
+          <PDFExport />
+        </div>
       </div>
 
       {/* Monthly Overview - Primary Section */}

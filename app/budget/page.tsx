@@ -35,7 +35,6 @@ export default function BudgetPage() {
         <div className="flex items-center gap-3 mb-2">
           <PiggyBank className="w-7 h-7 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Budget Tracker</h1>
             <p className="text-sm text-muted-foreground">Set spending limits and monitor your budget health</p>
           </div>
         </div>

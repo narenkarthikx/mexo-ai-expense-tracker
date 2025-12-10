@@ -17,14 +17,17 @@ interface Budget {
   period?: string
 }
 
-const CATEGORIES = [
-  { name: "Groceries", icon: "🛒" },
-  { name: "Food & Dining", icon: "🍽️" },
-  { name: "Utilities", icon: "💡" },
-  { name: "Housing", icon: "🏠" },
-  { name: "Transport", icon: "🚗" },
-  { name: "Entertainment", icon: "🎬" },
-  { name: "Health", icon: "⚕️" },
+const DEFAULT_CATEGORIES = [
+  "Groceries",
+  "Dining",
+  "Transportation",
+  "Shopping",
+  "Healthcare",
+  "Entertainment",
+  "Utilities",
+  "Travel",
+  "Gas",
+  "Other"
 ]
 
 const BUDGET_PERIODS = [
@@ -36,6 +39,7 @@ const BUDGET_PERIODS = [
 
 export default function BudgetManager() {
   const [budgets, setBudgets] = useState<Budget[]>([])
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES)
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState("")
   const [budgetLimit, setBudgetLimit] = useState("")
@@ -43,8 +47,28 @@ export default function BudgetManager() {
   const supabase = createClient()
 
   useEffect(() => {
+    loadCategories()
     fetchBudgets()
   }, [])
+
+  async function loadCategories() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      
+      const { data, error } = await supabase
+        .from('user_categories')
+        .select('categories')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data?.categories) {
+        setCategories(data.categories)
+      }
+    } catch (error) {
+      console.log('Using default categories')
+    }
+  }
 
   const fetchBudgets = async () => {
     try {
@@ -215,26 +239,21 @@ export default function BudgetManager() {
         <form onSubmit={handleAddBudget} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Select Category</label>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.name}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.name)}
-                  className={`p-3 rounded-lg text-center transition-all border ${
-                    selectedCategory === cat.name
-                      ? "border-primary bg-primary/10 shadow-sm"
-                      : "border-border hover:border-primary/40 hover:bg-muted/50"
-                  }`}
-                >
-                  <div className="text-xl mb-0.5">{cat.icon}</div>
-                  <div className="text-[10px] font-medium leading-tight">{cat.name}</div>
-                </button>
-              ))}
-            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Choose category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-sm font-medium mb-2">Budget Limit</label>
               <div className="relative">

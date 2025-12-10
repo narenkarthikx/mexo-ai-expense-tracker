@@ -396,11 +396,17 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
 
                   {selectedExpense.extracted_data?.items && selectedExpense.extracted_data.items.length > 0 && (
                     <div className="py-2 border-b">
-                      <span className="text-muted-foreground block mb-1.5">Items</span>
-                      <div className="text-sm bg-muted/30 p-2.5 rounded-lg">
-                        {selectedExpense.extracted_data.items
-                          .map((item: any) => item.description)
-                          .join(', ')}
+                      <span className="text-muted-foreground block mb-1.5 text-xs">Items Purchased</span>
+                      <div className="space-y-1">
+                        {selectedExpense.extracted_data.items.map((item: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center text-xs py-1">
+                            <span className="flex-1 text-foreground">
+                              <span className="text-muted-foreground mr-1">{item.quantity || 1}×</span>
+                              {item.description}
+                            </span>
+                            <span className="font-medium text-primary ml-2">₹{((item.price || 0) * (item.quantity || 1)).toFixed(0)}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}

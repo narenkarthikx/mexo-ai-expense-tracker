@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth/auth-provider"
 import { createClient } from "@/lib/supabase-client"
-import { Plus, Upload, Loader2, Camera } from "lucide-react"
+import { Plus, Upload, Loader2, Camera, Pencil } from "lucide-react"
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   "Groceries", "Dining", "Transportation", "Shopping", "Healthcare", 
   "Entertainment", "Utilities", "Travel", "Gas", "Other"
 ]
@@ -22,12 +22,36 @@ export default function SimpleExpenseForm() {
   const [amount, setAmount] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState("")
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES)
   const [loading, setLoading] = useState(false)
   const [receiptLoading, setReceiptLoading] = useState(false)
   const [cameraSupported, setCameraSupported] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
+
+  // Load user categories on mount
+  useEffect(() => {
+    loadCategories()
+  }, [user])
+
+  async function loadCategories() {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_categories')
+        .select('categories')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data?.categories) {
+        setCategories(data.categories)
+      }
+    } catch (error) {
+      console.log('Using default categories')
+    }
+  }
 
   // Check camera support on mount
   useEffect(() => {
@@ -425,13 +449,29 @@ export default function SimpleExpenseForm() {
         <form onSubmit={handleAddExpense} className="space-y-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-base font-semibold flex items-center gap-2">
-              <Plus className="w-5 h-5 text-green-600" />
+              <Pencil className="w-5 h-5 text-green-600" />
               Manual Entry
             </h3>
             <Badge variant="outline" className="text-xs">Quick Add</Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1.5">Category</label>
+              <Select value={category} onValueChange={setCategory} disabled={loading}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <label className="block text-xs font-medium mb-1.5">Amount</label>
               <div className="relative">
@@ -447,22 +487,6 @@ export default function SimpleExpenseForm() {
                   disabled={loading}
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium mb-1.5">Category</label>
-              <Select value={category} onValueChange={setCategory} disabled={loading}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
@@ -490,7 +514,7 @@ export default function SimpleExpenseForm() {
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 mr-2" />
+                <Pencil className="w-4 h-4 mr-2" />
                 Add Expense
               </>
             )}
