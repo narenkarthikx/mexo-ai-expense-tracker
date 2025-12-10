@@ -98,7 +98,11 @@ ADD COLUMN IF NOT EXISTS payment_method VARCHAR(100);
 ALTER TABLE expenses 
 ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'Other';
 
--- User categories table for custom category management
+-- ===================================================
+-- USER CATEGORIES TABLE (Custom Category Management)
+-- ===================================================
+
+-- Create user categories table for custom category management
 CREATE TABLE IF NOT EXISTS user_categories (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   categories TEXT[] NOT NULL DEFAULT ARRAY['Groceries', 'Dining', 'Transportation', 'Shopping', 'Healthcare', 'Entertainment', 'Utilities', 'Travel', 'Gas', 'Other'],
@@ -108,6 +112,37 @@ CREATE TABLE IF NOT EXISTS user_categories (
 
 -- Index for faster category lookups
 CREATE INDEX IF NOT EXISTS idx_user_categories_user_id ON user_categories(user_id);
+
+-- Enable RLS (Row Level Security)
+ALTER TABLE user_categories ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow users to read their own categories
+CREATE POLICY IF NOT EXISTS "Users can view their own categories" 
+  ON user_categories 
+  FOR SELECT 
+  USING (auth.uid() = user_id);
+
+-- Create policy to allow users to insert their own categories
+CREATE POLICY IF NOT EXISTS "Users can insert their own categories" 
+  ON user_categories 
+  FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+-- Create policy to allow users to update their own categories
+CREATE POLICY IF NOT EXISTS "Users can update their own categories" 
+  ON user_categories 
+  FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+-- Create policy to allow users to delete their own categories
+CREATE POLICY IF NOT EXISTS "Users can delete their own categories" 
+  ON user_categories 
+  FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- ===================================================
+-- LEGACY CATEGORY TABLES
+-- ===================================================
 
 -- Add system flag to categories
 ALTER TABLE categories 

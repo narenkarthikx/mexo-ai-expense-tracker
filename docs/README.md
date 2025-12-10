@@ -1,84 +1,42 @@
-# Expense Tracker PWA Documentation
+# 📚 Mexo Documentation
 
-Welcome to the comprehensive documentation for the Expense Tracker Progressive Web App (PWA). This documentation provides detailed information for developers, users, and contributors.
+Complete documentation for the expense tracker application.
 
-## 📚 Documentation Structure
+## 📖 Guides
 
-### For Developers
-- **[Setup & Installation](./setup.md)** - Complete development environment setup
-- **[Database Guide](./database.md)** - Database schema, setup, and management
-- **[API Reference](./api.md)** - All API endpoints and usage
-- **[AI Integration](./ai-integration.md)** - Google Gemini AI receipt processing
-- **[Architecture](./architecture.md)** - Application structure and design patterns
-
-### For Users
-- **[User Guide](./user-guide.md)** - How to use the application
-- **[Features](./features.md)** - Complete feature overview
-- **[FAQ](./faq.md)** - Frequently asked questions
-
-### For Contributors
-- **[Contributing](./contributing.md)** - How to contribute to the project
-- **[Development Workflow](./workflow.md)** - Git workflow and best practices
-- **[Testing](./testing.md)** - Testing guidelines and procedures
+- **[Setup Guide](./setup.md)** - Installation and configuration
+- **[Database Guide](./database.md)** - Database schema and setup
+- **[AI Integration](./ai-integration.md)** - Receipt scanning with Google Gemini AI
 
 ## 🚀 Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/expense-tracker-pwa.git
-   cd expense-tracker-pwa
-   ```
+```bash
+git clone https://github.com/narenkarthikx/Expense-tracker-ai.git
+cd "Mexo - My Expenses Optimized"
+pnpm install
+cp .env.local.example .env.local
+# Edit .env.local with your credentials
+# Run database/setup.sql in Supabase
+pnpm dev
+```
 
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+## 🏗️ Project Structure
 
-3. **Set up the database**
-   - Follow the [Database Guide](./database.md)
-   - Run the complete setup script in your Supabase instance
+```
+├── app/                  # Next.js pages
+├── components/           # React components
+├── database/            # SQL setup scripts
+├── docs/                # Documentation
+└── lib/                 # Utilities
+```
 
-4. **Configure environment**
-   ```bash
-   cp .env.local.example .env.local
-   # Edit .env.local with your credentials
-   ```
+## 🛠️ Tech Stack
 
-5. **Start development server**
-   ```bash
-   pnpm dev
-   ```
+- Next.js 15 + React 19 + TypeScript
+- Tailwind CSS + Shadcn/ui
+- Supabase (PostgreSQL + Auth)
+- Google Gemini 2.5 Flash
 
-## 🔧 Key Features
+---
 
-- **💰 Expense Tracking** - Manual and AI-powered receipt scanning
-- **📊 Analytics** - Detailed spending insights and trends
-- **🎯 Budget Management** - Set and track spending limits
-- **📱 PWA Support** - Install as native app on mobile devices
-- **🤖 AI Receipt Processing** - Automatic expense extraction from receipts
-- **🔒 Secure Authentication** - Supabase auth integration
-
-## 🛠️ Technology Stack
-
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **AI**: Google Gemini AI (gemini-2.5-flash model)
-- **Deployment**: Vercel (recommended)
-- **Package Manager**: pnpm
-
-## 📖 Additional Resources
-
-- [Project README](../README.md) - Basic project information
-- [Environment Variables](./environment.md) - Complete env setup guide
-- [Deployment Guide](./deployment.md) - Production deployment instructions
-- [Troubleshooting](./troubleshooting.md) - Common issues and solutions
-
-## 🤝 Support
-
-- Create an [issue](https://github.com/yourusername/expense-tracker-pwa/issues) for bug reports
-- Join our [discussions](https://github.com/yourusername/expense-tracker-pwa/discussions) for questions
-- Check the [FAQ](./faq.md) for common questions
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+[← Back to Main README](../README.md)

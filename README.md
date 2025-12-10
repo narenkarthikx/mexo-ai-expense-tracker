@@ -1,51 +1,88 @@
-# 💰 Mexo-My Expenses Optimized - Smart Expense Tracker with AI Receipt Processing
+# 💰 Mexo - My Expenses Optimized
 
-A modern, AI-powered expense tracking Progressive Web App (PWA) built with Next.js 16 and Google Gemini AI.
+> Smart AI-Powered Expense Tracker with Receipt Scanning
 
-## ✨ Features
+A modern Progressive Web App (PWA) built with Next.js 15, Supabase, and Google Gemini AI for intelligent expense tracking and financial management.
 
-### 🤖 AI-Powered Receipt Processing
-- **Automated Data Extraction**: Upload receipt photos and let AI extract all details
-- **Smart Categorization**: Automatic expense categorization
-- **Multi-format Support**: Works with various receipt formats and languages
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-green)](https://supabase.com/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI-orange)](https://ai.google.dev/)
+
+## ✨ Key Features
+
+### 🤖 AI-Powered Receipt Scanning
+- **Instant Data Extraction**: Snap or upload receipts - AI extracts store, items, quantities, prices, and totals automatically
+- **High Accuracy**: Advanced OCR with Google Gemini 2.5 Flash for precise data capture
+- **Smart Categorization**: Auto-categorizes expenses (Groceries, Dining, Transport, etc.)
+- **Quantity Detection**: Extracts item quantities and calculates totals
+- **Multi-format Support**: Works with printed and handwritten receipts
 
 ### 💰 Financial Management
-- **Real-time Budget Tracking**: Set and monitor spending limits
-- **Category Management**: Custom categories with icons and colors
-- **Expense Analytics**: Visual charts and spending trends
-- **Monthly/Yearly Reports**: Comprehensive financial insights
+- **Custom Categories**: Create and manage your own expense categories
+- **Budget Tracking**: Set spending limits by category with visual progress indicators
+- **Real-time Analytics**: Interactive charts and spending trends
+- **Date Range Reports**: Export PDF reports for any custom date range
+- **Monthly Overview**: Dashboard with spending insights and statistics
 
 ### 📱 Progressive Web App
-- **Offline Capable**: Works without internet connection
-- **Mobile Optimized**: Native app-like experience
-- **Cross-Platform**: Works on desktop, tablet, and mobile
+- **Install on Any Device**: Works like a native app on mobile and desktop
+- **Offline Support**: Access your data even without internet
+- **Camera Integration**: Direct camera access for quick receipt capture
+- **Responsive Design**: Optimized for all screen sizes
+- **Mobile-First UI**: Touch-friendly interface with smooth animations
 
-### 🔐 Secure & Private
-- **Supabase Authentication**: Secure user management
-- **Privacy-first**: Your data stays private
-- **Real-time Sync**: Multi-device synchronization
+### 🔐 Security & Privacy
+- **Secure Authentication**: Supabase auth with email/password
+- **Row Level Security**: Your data is isolated and protected
+- **Encrypted Storage**: All sensitive data encrypted at rest
+- **No Data Sharing**: Your financial information stays private
 
 ## 🚀 Quick Start
 
-Ready to get started? Check out our detailed [Setup Guide](docs/setup.md).
+### Prerequisites
+- Node.js 18+ and pnpm
+- Supabase account ([free tier available](https://supabase.com))
+- Google Gemini API key ([get one free](https://ai.google.dev/))
 
-**TL;DR:**
+### Installation
+
 ```bash
-git clone https://github.com/narenkarthikx/expense-tracker-ai.git
-cd expense-tracker-pwa
+# Clone repository
+git clone https://github.com/narenkarthikx/Expense-tracker-ai.git
+cd "Mexo - My Expenses Optimized"
+
+# Install dependencies
 pnpm install
+
+# Setup environment
 cp .env.local.example .env.local
-# Edit .env.local with your API keys
+# Edit .env.local with your credentials
+
+# Setup database
+# Run database/setup.sql in Supabase SQL Editor
+
+# Start development server
 pnpm dev
 ```
 
+Visit `http://localhost:3000` and start tracking expenses!
+
+📖 **Detailed Setup**: See [Setup Guide](docs/setup.md) for complete instructions.
+
 ## 🛠️ Technology Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript
-- **Styling**: Tailwind CSS, Shadcn/ui components  
-- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
-- **AI**: Google Gemini AI for receipt processing
-- **PWA**: Service workers, offline support, installable
+| Category | Technology |
+|----------|-----------|
+| **Framework** | Next.js 15 (App Router), React 19 |
+| **Language** | TypeScript 5.0 |
+| **Styling** | Tailwind CSS 3, Shadcn/ui |
+| **Database** | Supabase (PostgreSQL) |
+| **Authentication** | Supabase Auth |
+| **AI/ML** | Google Gemini 2.5 Flash |
+| **PDF Generation** | jsPDF, jsPDF-AutoTable |
+| **State Management** | React Hooks, Context API |
+| **Deployment** | Vercel (optimized) |
 
 ## � How It Works
 
@@ -76,44 +113,103 @@ Simple, efficient database structure:
 - **🎯 Budgets**: Spending limits and tracking
 - **🛒 Wishlist**: Shopping lists and financial goals
 
-## 🚢 Deployment
+## 🌟 Recent Updates
 
-### Vercel (Recommended)
+### Latest Features (Dec 2024)
+- ✅ **Custom Categories**: Users can create/edit/delete their own categories
+- ✅ **Quantity Display**: Shows item quantities in expense details (e.g., "2× Rice")
+- ✅ **PDF Export**: Select custom date ranges for expense reports
+- ✅ **Mobile Dropdown Fix**: Improved z-index for better mobile UX
+- ✅ **Dynamic Budget**: Budget page now uses user's custom categories
+- ✅ **Better Analytics**: Enhanced PDF reports with category breakdown
+
+### Improvements
+- 🔧 Fixed jsPDF autoTable import for proper PDF generation
+- 🔧 Improved receipt extraction accuracy with detailed AI prompts
+- 🔧 Better responsive layout for analytics page
+- 🔧 Image compression for camera uploads (reduces API load)
+
+## 🚀 Deployment
+
+### Deploy to Vercel (Recommended)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/narenkarthikx/Expense-tracker-ai)
+
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-### Other Platforms
-- **Netlify**: Connect your Git repository
-- **Railway**: One-click deployment  
-- **Heroku**: Use Node.js buildpack
-
-**Important**: Set these environment variables in your hosting platform:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `GOOGLE_GEMINI_API_KEY`
-
 ## 📚 Documentation
 
-- **[Setup Guide](docs/setup.md)**: Complete development environment setup
-- **[Database Guide](docs/database.md)**: Database schema and configuration
-- **[AI Integration](docs/ai-integration.md)**: Google Gemini AI receipt processing
-- **[Documentation Hub](docs/README.md)**: Full documentation index
+- **[Setup Guide](docs/setup.md)** - Installation and configuration
+- **[Database Guide](docs/database.md)** - Database schema and setup  
+- **[AI Integration](docs/ai-integration.md)** - Receipt scanning details
 
-## 🆘 Common Issues
+## 🐛 Troubleshooting
 
-**Build errors?** 
-- Ensure Node.js 18+ is installed
-- Try: `rm -rf .next node_modules && npm install`
+### Common Issues
 
-**Supabase connection issues?**
-- Check your URL and keys in `.env.local`
-- Verify database tables are created
+**Build Errors**
+```bash
+# Clear cache and reinstall
+rm -rf .next node_modules pnpm-lock.yaml
+pnpm install
+pnpm build
+```
+
+**Supabase Connection Issues**
+- Verify `.env.local` has correct `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Check if database tables exist (run `database/user-categories.sql`)
+- Ensure RLS policies are enabled
+
+**AI Receipt Processing Fails**
+- Confirm `GOOGLE_GEMINI_API_KEY` is valid
+- Check rate limits (free tier: 5 RPM, 20 RPD)
+- First camera photo always works; second may fail due to rate limits
+- Use image compression to reduce API usage
+
+**PDF Export Not Working**
+- Ensure `jspdf` and `jspdf-autotable` are installed
+- Check browser console for errors
+- Verify date range selection is valid
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+See [docs/README.md](docs/README.md) for development guidelines.
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Supabase](https://supabase.com/) - Backend platform
+- [Google Gemini](https://ai.google.dev/) - AI models
+- [Shadcn/ui](https://ui.shadcn.com/) - UI components
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+
+## 📞 Support
+
+- 🐛 [Report Bug](https://github.com/narenkarthikx/Expense-tracker-ai/issues)
+- 💡 [Request Feature](https://github.com/narenkarthikx/Expense-tracker-ai/issues)
+- 📧 Contact: [narenkarthikx@gmail.com](mailto:narenkarthikx@gmail.com)
+
+---
+
+<div align="center">
+
+**Built with ❤️ using Next.js, Supabase, and Google Gemini AI**
+
+⭐ Star this repo if you find it helpful!
+
+[Demo](https://expense-tracker-ai.vercel.app) • [Documentation](docs/README.md) • [Issues](https://github.com/narenkarthikx/Expense-tracker-ai/issues)
+
+</div>
 
 **AI features not working?**
 - Confirm your Google Gemini API key is valid
