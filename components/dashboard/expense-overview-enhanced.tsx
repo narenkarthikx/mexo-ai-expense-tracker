@@ -46,7 +46,7 @@ export default function ExpenseOverviewEnhanced() {
       // Get all expenses
       const { data: expenses } = await supabase
         .from('expenses')
-        .select('amount, date, processing_status, category')
+        .select('amount, date, processing_status, category, extracted_data, ai_confidence')
         .eq('user_id', user.id)
 
       if (expenses) {
@@ -54,8 +54,10 @@ export default function ExpenseOverviewEnhanced() {
         const weekExpenses = expenses.filter(e => e.date >= weekAgo)
         const monthExpenses = expenses.filter(e => e.date >= monthAgo)
         
-        const aiProcessed = expenses.filter(e => e.processing_status === 'completed' && 
-          (e as any).extracted_data || (e as any).ai_confidence).length
+        const aiProcessed = expenses.filter(e => 
+          (e.processing_status === 'completed' && e.extracted_data) || 
+          (e.ai_confidence && e.ai_confidence > 0.5)
+        ).length
         
         const manual = expenses.length - aiProcessed
 

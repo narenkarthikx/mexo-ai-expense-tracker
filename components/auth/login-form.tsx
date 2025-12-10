@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase-client"
-import { Loader, Eye, EyeOff } from "lucide-react"
+import { Loader, Eye, EyeOff, Mail, Lock } from "lucide-react"
 
 export default function LoginForm() {
   const router = useRouter()
@@ -42,30 +42,44 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleLogin} className="space-y-5">
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground">Email Address</label>
-        <Input
-          type="email"
-          placeholder="your@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
-          className="h-11 bg-input border-border hover:border-primary/50 transition-colors"
-          required
-        />
+    <form onSubmit={handleLogin} className="space-y-3.5">
+      {/* Email */}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Email Address
+        </label>
+        <div className="relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <Mail className="w-4 h-4" />
+          </div>
+          <Input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            className="h-10 pl-10 bg-gradient-to-br from-background to-muted/30 border-muted-foreground/20 hover:border-primary/40 focus:border-primary transition-all"
+            required
+          />
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground">Password</label>
+      {/* Password */}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Password
+        </label>
         <div className="relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <Lock className="w-4 h-4" />
+          </div>
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
-            className="h-11 bg-input border-border pr-10 hover:border-primary/50 transition-colors"
+            className="h-10 pl-10 pr-10 bg-gradient-to-br from-background to-muted/30 border-muted-foreground/20 hover:border-primary/40 focus:border-primary transition-all"
             required
           />
           <button
@@ -78,13 +92,20 @@ export default function LoginForm() {
         </div>
       </div>
 
+      {/* Error Message */}
       {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
-          {error}
+        <div className="p-2.5 bg-gradient-to-r from-destructive/10 to-red-50 border border-destructive/30 rounded-lg text-xs text-destructive flex items-start gap-2">
+          <span className="text-destructive font-bold">⚠</span>
+          <span>{error}</span>
         </div>
       )}
 
-      <Button type="submit" className="w-full h-11 font-semibold" disabled={loading}>
+      {/* Submit Button */}
+      <Button 
+        type="submit" 
+        className="w-full h-10 font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-lg shadow-primary/20 transition-all" 
+        disabled={loading}
+      >
         {loading ? (
           <>
             <Loader className="w-4 h-4 mr-2 animate-spin" />

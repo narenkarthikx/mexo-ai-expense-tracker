@@ -121,6 +121,23 @@ If you cannot read certain fields, use null for those values. Ensure the categor
         try {
           const jsonMatch = extractedText.match(/\{[\s\S]*\}/)
           extractedData = jsonMatch ? JSON.parse(jsonMatch[0]) : null
+          
+          // Fix total calculation to match items sum
+          if (extractedData && extractedData.items && Array.isArray(extractedData.items)) {
+            const itemsTotal = extractedData.items.reduce((sum: number, item: any) => {
+              const itemPrice = (item.price || 0) * (item.quantity || 1)
+              return sum + itemPrice
+            }, 0)
+            
+            const calculatedTotal = itemsTotal + (extractedData.tax || 0)
+            
+            // Use calculated total if AI total doesn't match
+            if (Math.abs(calculatedTotal - (extractedData.total || 0)) > 1) {
+              console.log(`Total mismatch detected. AI: ${extractedData.total}, Calculated: ${calculatedTotal}. Using calculated.`)
+              extractedData.subtotal = itemsTotal
+              extractedData.total = calculatedTotal
+            }
+          }
         } catch (parseError) {
           console.error("JSON Parse error:", parseError)
           extractedData = null

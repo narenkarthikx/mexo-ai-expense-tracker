@@ -350,17 +350,26 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
         <DrawerContent>
           <div className="mx-auto w-full max-w-lg">
             <DrawerHeader className="pb-3">
-              <DrawerTitle className="text-lg font-bold">{selectedExpense?.description}</DrawerTitle>
+              <div className="flex items-start justify-between gap-3">
+                <DrawerTitle className="text-base font-bold flex-1 truncate pr-2">
+                  {selectedExpense?.description}
+                </DrawerTitle>
+                <DrawerClose asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </DrawerClose>
+              </div>
             </DrawerHeader>
             
             {selectedExpense && (
-              <div className="px-6 pb-4 space-y-4">
+              <div className="px-6 pb-4 space-y-3">
                 {/* Amount */}
                 <div className="text-center py-3 bg-primary/5 rounded-lg">
                   <p className="text-3xl font-bold text-primary">₹{selectedExpense.amount.toFixed(0)}</p>
                 </div>
 
-                {/* Simple List */}
+                {/* Simple Info */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Date</span>
@@ -387,41 +396,21 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
 
                   {selectedExpense.extracted_data?.items && selectedExpense.extracted_data.items.length > 0 && (
                     <div className="py-2 border-b">
-                      <span className="text-muted-foreground block mb-2">Items Purchased</span>
-                      <div className="space-y-1">
-                        {selectedExpense.extracted_data.items.map((item: any, idx: number) => (
-                          <div key={idx} className="flex justify-between text-sm bg-muted/30 p-2 rounded">
-                            <span className="flex-1">{item.description}</span>
-                            {item.quantity > 1 && (
-                              <span className="text-muted-foreground mx-2">x{item.quantity}</span>
-                            )}
-                            <span className="font-medium">₹{item.price?.toFixed(0)}</span>
-                          </div>
-                        ))}
+                      <span className="text-muted-foreground block mb-1.5">Items</span>
+                      <div className="text-sm bg-muted/30 p-2.5 rounded-lg">
+                        {selectedExpense.extracted_data.items
+                          .map((item: any) => item.description)
+                          .join(', ')}
                       </div>
-                    </div>
-                  )}
-
-                  {selectedExpense.extracted_data?.subtotal && (
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">₹{selectedExpense.extracted_data.subtotal.toFixed(0)}</span>
-                    </div>
-                  )}
-
-                  {selectedExpense.extracted_data?.tax && selectedExpense.extracted_data.tax > 0 && (
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-muted-foreground">Tax</span>
-                      <span className="font-medium">₹{selectedExpense.extracted_data.tax.toFixed(0)}</span>
                     </div>
                   )}
 
                   {selectedExpense.ai_confidence && selectedExpense.ai_confidence > 0.5 && (
                     <div className="flex justify-between py-2">
-                      <span className="text-muted-foreground">AI Scanned</span>
+                      <span className="text-muted-foreground">Source</span>
                       <span className="font-medium flex items-center gap-1">
                         <FileText className="w-3 h-3" />
-                        Receipt
+                        AI Receipt
                       </span>
                     </div>
                   )}
@@ -429,17 +418,23 @@ export default function ExpenseList({ filters }: ExpenseListProps) {
               </div>
             )}
 
-            <DrawerFooter className="flex flex-row gap-2 pt-2">
-              <Button 
-                variant="destructive" 
-                onClick={() => selectedExpense && handleDelete(selectedExpense.id)}
-                className="flex-1"
-              >
-                Delete
-              </Button>
-              <DrawerClose asChild>
-                <Button variant="outline" className="flex-1">Close</Button>
-              </DrawerClose>
+            <DrawerFooter className="pt-2 pb-6 px-6">
+              <div className="flex gap-2">
+                <DrawerClose asChild>
+                  <Button variant="outline" className="flex-1">
+                    <X className="w-4 h-4 mr-2" />
+                    Close
+                  </Button>
+                </DrawerClose>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => selectedExpense && handleDelete(selectedExpense.id)}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
             </DrawerFooter>
           </div>
         </DrawerContent>
