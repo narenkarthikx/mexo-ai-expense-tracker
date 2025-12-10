@@ -174,10 +174,18 @@ export default function SimpleExpenseForm() {
   const processReceipt = async (file: File) => {
     if (!user) return
     
-    console.log("Starting receipt upload:", file.name)
+    console.log("Starting receipt upload:", file.name, "Size:", file.size)
     setReceiptLoading(true)
 
     try {
+      // Compress image if from camera or if large
+      let processedFile = file
+      if (file.size > 1 * 1024 * 1024) { // If larger than 1MB
+        console.log("Compressing large image...")
+        processedFile = await compressImage(file)
+        console.log("Compressed size:", processedFile.size)
+      }
+
       const reader = new FileReader()
       reader.onload = async (event) => {
         try {
@@ -199,13 +207,21 @@ export default function SimpleExpenseForm() {
           if (result.success) {
             toast({
               title: "🎉 Receipt Processed!",
-              description: result.message || "Expense extracted successfully",
+              description: result.message || "Expense added successfully",
             })
             setTimeout(() => window.location.reload(), 2000)
           } else {
+            // Show more helpful error for rate limits
+            const errorMsg = result.error || "Could not process receipt"
+            const isRateLimit = errorMsg.toLowerCase().includes('quota') || 
+                               errorMsg.toLowerCase().includes('limit') ||
+                               errorMsg.toLowerCase().includes('rate')
+            
             toast({
-              title: "❌ Processing Failed",
-              description: result.error || "Could not process receipt",
+              title: isRateLimit ? "⏳ Rate Limit" : "❌ Processing Failed",
+              description: isRateLimit 
+                ? "API limit reached. Please try again in a few minutes or use manual entry."
+                : errorMsg,
               variant: "destructive",
             })
           }
@@ -213,7 +229,7 @@ export default function SimpleExpenseForm() {
           console.error("API call failed:", fetchError)
           toast({
             title: "❌ Upload Failed",
-            description: "Could not connect to AI service",
+            description: "Could not connect to AI service. Please try manual entry.",
             variant: "destructive",
           })
         }
@@ -228,7 +244,7 @@ export default function SimpleExpenseForm() {
         })
       }
 
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(processedFile)
     } catch (error) {
       console.error("Receipt upload error:", error)
       toast({
@@ -239,6 +255,59 @@ export default function SimpleExpenseForm() {
     } finally {
       setReceiptLoading(false)
     }
+  }
+
+  // Compress image to reduce size
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+          
+          // Resize if too large
+          const maxDimension = 1200
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension
+              width = maxDimension
+            } else {
+              width = (width / height) * maxDimension
+              height = maxDimension
+            }
+          }
+          
+          canvas.width = width
+          canvas.height = height
+          
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+          
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                })
+                resolve(compressedFile)
+              } else {
+                resolve(file)
+              }
+            },
+            'image/jpeg',
+            0.8 // 80% quality
+          )
+        }
+        img.onerror = () => resolve(file)
+        img.src = e.target?.result as string
+      }
+      reader.onerror = () => resolve(file)
+      reader.readAsDataURL(file)
+    })
   }
 
   const handleCameraClick = () => {
