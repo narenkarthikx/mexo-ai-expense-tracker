@@ -29,6 +29,7 @@ export function CategoryManager() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editValue, setEditValue] = useState("")
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     loadCategories()
@@ -52,22 +53,6 @@ export function CategoryManager() {
       console.error('Error loading categories:', error)
     }
   }
-
-  const supabase = createClient()
-  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES)
-  const [newCategory, setNewCategory] = useState("")
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [editValue, setEditValue] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    loadCategories()
-  }, [])
-
-  async function loadCategories() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       const { data, error } = await supabase
