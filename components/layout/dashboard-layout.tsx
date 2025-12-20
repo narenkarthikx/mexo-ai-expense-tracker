@@ -35,9 +35,8 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-300 md:relative md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-300 md:relative md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="h-full flex flex-col">
           {/* Header */}
@@ -69,7 +68,26 @@ export default function DashboardLayout({
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border space-y-4">
+            {/* Developer Credit */}
+            <a
+              href="https://github.com/narenkarthikx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-muted/30 border border-border rounded-lg px-3 py-2.5 hover:border-primary/30 transition-all group decoration-0"
+            >
+              <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                <span className="text-primary font-mono text-sm font-bold">&gt;_</span>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase leading-tight truncate">Developer</span>
+                <span className="font-mono font-bold text-foreground text-xs leading-tight group-hover:text-primary transition-colors truncate">
+                  narenkarthik<span className="text-primary">x</span>
+                </span>
+              </div>
+            </a>
+
+
             <Button
               onClick={handleLogout}
               variant="outline"
