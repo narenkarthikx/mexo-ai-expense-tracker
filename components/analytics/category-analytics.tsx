@@ -2,17 +2,24 @@
 
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
 import { createClient } from "@/lib/supabase-client"
-import { ShoppingCart, Utensils, Car, ShoppingBag, Heart, Popcorn, Zap, Plane, Fuel, MoreHorizontal } from "lucide-react"
+import { ShoppingCart, Utensils, Car, ShoppingBag, Heart, Popcorn, Zap, Plane, Fuel, MoreHorizontal, Info } from "lucide-react"
+import { format } from "date-fns"
 
 interface CategoryData {
   category: string
   amount: number
   percentage: number
   count: number
+}
+
+interface CategoryAnalyticsProps {
+  dateRange: {
+    from: Date
+    to: Date
+  }
 }
 
 const CATEGORY_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -41,31 +48,31 @@ const CATEGORY_COLORS: { [key: string]: string } = {
   Other: "bg-gray-500",
 }
 
-export default function CategoryAnalytics() {
+export default function CategoryAnalytics({ dateRange }: CategoryAnalyticsProps) {
   const [data, setData] = useState<CategoryData[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
     fetchCategoryData()
-  }, [])
+  }, [dateRange])
 
   const fetchCategoryData = async () => {
+    setLoading(true)
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const today = new Date()
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      const { from, to } = dateRange
+      const startDate = format(from, 'yyyy-MM-dd')
+      const endDate = format(to, 'yyyy-MM-dd')
 
       const { data: expenses, error } = await supabase
         .from("expenses")
         .select("amount, category")
         .eq("user_id", user.id)
-        .gte("date", startOfMonth.toISOString().split("T")[0])
-        .lte("date", today.toISOString().split("T")[0])
+        .gte("date", startDate)
+        .lte("date", endDate)
 
       if (!error && expenses) {
         const categoryTotals: Record<string, { amount: number; count: number }> = {}
@@ -85,7 +92,7 @@ export default function CategoryAnalytics() {
           .map(([category, data]) => ({
             category,
             amount: Math.round(data.amount * 100) / 100,
-            percentage: Math.round((data.amount / total) * 100),
+            percentage: total > 0 ? Math.round((data.amount / total) * 100) : 0,
             count: data.count,
           }))
           .sort((a, b) => b.amount - a.amount)
@@ -97,39 +104,31 @@ export default function CategoryAnalytics() {
     }
   }
 
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <div className="flex justify-center">
-          <Spinner />
-        </div>
-      </Card>
-    )
-  }
+  if (loading) return <Card className="p-6"><div className="flex justify-center"><Spinner /></div></Card>
 
   if (data.length === 0) {
     return (
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Category Breakdown</h3>
-        <p className="text-center text-muted-foreground py-8">No expense data for this month</p>
+      <Card className="p-6 text-center">
+        <h3 className="text-lg font-semibold mb-2">Where is my money going?</h3>
+        <p className="text-muted-foreground">No data for this period yet.</p>
       </Card>
     )
   }
 
   const topCategories = data.slice(0, 5)
+  const topCategory = data[0]
 
   return (
     <Card className="p-5 bg-gradient-to-br from-card to-muted/10">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Category Breakdown</h3>
-        <Badge variant="outline" className="text-xs">{data.length} Categories</Badge>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold tracking-tight">Where is my money going?</h3>
       </div>
-      
-      <div className="space-y-4">
-        {topCategories.map((item, index) => {
+
+      <div className="space-y-5">
+        {topCategories.map((item) => {
           const Icon = CATEGORY_ICONS[item.category] || MoreHorizontal
           const colorClass = CATEGORY_COLORS[item.category] || "bg-gray-500"
-          
+
           return (
             <div key={item.category} className="space-y-2">
               <div className="flex items-center justify-between">
@@ -152,14 +151,15 @@ export default function CategoryAnalytics() {
           )
         })}
       </div>
-      
-      {data.length > 5 && (
-        <div className="mt-4 pt-4 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">
-            +{data.length - 5} more categories
+
+      <div className="mt-6 pt-4 border-t border-border/50">
+        <div className="flex gap-3 items-start bg-muted/20 p-3 rounded-lg">
+          <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+          <p className="text-sm text-foreground/80">
+            In this period, your highest spending is on <span className="font-semibold text-foreground">{topCategory.category}</span>, accounting for {topCategory.percentage}% of your expenses.
           </p>
         </div>
-      )}
+      </div>
     </Card>
   )
 }

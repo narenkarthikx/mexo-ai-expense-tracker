@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
 import ExpenseList from "@/components/expenses/expense-list"
 import ExpenseFilters from "@/components/expenses/expense-filters"
-import SimpleExpenseForm from "@/components/simple-expense-form"
+import SimpleExpenseForm from "@/components/expenses/simple-expense-form"
 import { Receipt } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Card } from "@/components/ui/card"
@@ -16,7 +16,7 @@ export default function ExpensesPage() {
   const [filters, setFilters] = useState({
     search: '',
     category: 'All',
-    dateFilter: 'all',
+    dateFilter: 'month',
     dateRange: {} as { start?: string, end?: string }
   })
 

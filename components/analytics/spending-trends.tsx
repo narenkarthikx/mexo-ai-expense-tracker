@@ -2,81 +2,80 @@
 
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { createClient } from "@/lib/supabase-client"
-import { TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react"
+import { TrendingUp, TrendingDown, IndianRupee } from "lucide-react"
+import { format } from "date-fns"
 
 interface TrendData {
-  thisWeek: number
-  lastWeek: number
-  thisMonth: number
-  lastMonth: number
-  dailyAverage: number
-  topSpendingDay: { date: string; amount: number }
+  current: number
+  previous: number
+  average: number
 }
 
-export default function SpendingTrends() {
+interface SpendingTrendsProps {
+  dateRange: {
+    from: Date
+    to: Date
+  }
+}
+
+export default function SpendingTrends({ dateRange }: SpendingTrendsProps) {
   const [data, setData] = useState<TrendData | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
-    fetchSpendingTrends()
-  }, [])
+    fetchData()
+  }, [dateRange])
 
-  const fetchSpendingTrends = async () => {
+  const fetchData = async () => {
+    setLoading(true)
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const today = new Date()
-      const startOfThisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const startOfLastWeek = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000)
-      const startOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-      const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+      const { from, to } = dateRange
+      const startOfPeriod = format(from, 'yyyy-MM-dd')
+      const endOfPeriod = format(to, 'yyyy-MM-dd')
 
-      const { data: expenses } = await supabase
+      // Previous Period
+      const duration = to.getTime() - from.getTime()
+      const prevToDate = new Date(from.getTime() - 86400000)
+      const prevFromDate = new Date(prevToDate.getTime() - duration)
+
+      const startOfLastPeriod = format(prevFromDate, 'yyyy-MM-dd')
+      const endOfLastPeriod = format(prevToDate, 'yyyy-MM-dd')
+
+      // Fetch Current Period
+      const { data: currentExp } = await supabase
         .from("expenses")
-        .select("amount, date, category")
+        .select("amount")
         .eq("user_id", user.id)
-        .gte("date", startOfLastMonth.toISOString().split("T")[0])
+        .gte("date", startOfPeriod)
+        .lte("date", endOfPeriod)
 
-      if (expenses) {
-        const thisWeekExp = expenses.filter(e => new Date(e.date) >= startOfThisWeek)
-        const lastWeekExp = expenses.filter(e => 
-          new Date(e.date) >= startOfLastWeek && new Date(e.date) < startOfThisWeek
-        )
-        const thisMonthExp = expenses.filter(e => new Date(e.date) >= startOfThisMonth)
-        const lastMonthExp = expenses.filter(e => 
-          new Date(e.date) >= startOfLastMonth && new Date(e.date) < startOfThisMonth
-        )
+      // Fetch Previous Period
+      const { data: prevExp } = await supabase
+        .from("expenses")
+        .select("amount")
+        .eq("user_id", user.id)
+        .gte("date", startOfLastPeriod)
+        .lte("date", endOfLastPeriod)
 
-        const thisWeek = thisWeekExp.reduce((sum, e) => sum + e.amount, 0)
-        const lastWeek = lastWeekExp.reduce((sum, e) => sum + e.amount, 0)
-        const thisMonth = thisMonthExp.reduce((sum, e) => sum + e.amount, 0)
-        const lastMonth = lastMonthExp.reduce((sum, e) => sum + e.amount, 0)
+      if (currentExp && prevExp) {
+        const currentTotal = currentExp.reduce((sum, e) => sum + e.amount, 0)
+        const prevTotal = prevExp.reduce((sum, e) => sum + e.amount, 0)
 
-        // Daily breakdown
-        const dailyTotals: { [key: string]: number } = {}
-        thisMonthExp.forEach(e => {
-          dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount
-        })
-
-        const topDay = Object.entries(dailyTotals)
-          .sort(([,a], [,b]) => b - a)[0]
+        // Calculate days in period for average
+        // Ensure at least 1 day to avoid divide by zero
+        const daysDiff = Math.max(1, Math.ceil(duration / (1000 * 3600 * 24)) + 1)
+        const average = currentTotal / daysDiff
 
         setData({
-          thisWeek,
-          lastWeek,
-          thisMonth,
-          lastMonth,
-          dailyAverage: thisMonth / new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate(),
-          topSpendingDay: topDay 
-            ? { date: topDay[0], amount: topDay[1] }
-            : { date: '', amount: 0 }
+          current: currentTotal,
+          previous: prevTotal,
+          average
         })
       }
     } finally {
@@ -85,96 +84,54 @@ export default function SpendingTrends() {
   }
 
   if (loading) {
+    return <div className="flex justify-center p-8"><Spinner /></div>
+  }
+
+  if (!data || data.current === 0) {
     return (
-      <Card className="p-6">
-        <div className="flex justify-center">
-          <Spinner />
-        </div>
+      <Card className="p-8 text-center bg-gradient-to-br from-muted/30 to-muted/10 border-dashed">
+        <h3 className="text-lg font-semibold mb-2">Am I improving?</h3>
+        <p className="text-muted-foreground">Trends will appear once you track expenses over time.</p>
       </Card>
     )
   }
 
-  if (!data || data.thisMonth === 0) {
-    return (
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Spending Trends</h3>
-        <p className="text-center text-muted-foreground py-8">No spending data available</p>
-      </Card>
-    )
-  }
-
-  const weekChange = ((data.thisWeek - data.lastWeek) / (data.lastWeek || 1)) * 100
-  const monthChange = ((data.thisMonth - data.lastMonth) / (data.lastMonth || 1)) * 100
+  const diff = data.current - data.previous
+  const percentage = data.previous > 0 ? (diff / data.previous) * 100 : 0
+  const isBetter = diff < 0 // Spending less is usually "better"
 
   return (
-    <Card className="p-5 bg-gradient-to-br from-card to-muted/10">
-      <h3 className="text-lg font-semibold mb-4">Spending Trends</h3>
-      
-      <div className="grid grid-cols-2 gap-4">
-        {/* This Week vs Last Week */}
-        <div className="space-y-2 p-4 rounded-lg bg-background/50 border border-border">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-500" />
-            <span className="text-xs font-medium text-muted-foreground">This Week</span>
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold tracking-tight">Am I improving?</h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Main Comparison */}
+        <div className="p-5 rounded-xl bg-muted/30 border border-primary/5">
+          <p className="text-sm font-medium text-muted-foreground mb-1 capitalize">Total Spent (Selected Period)</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold">₹{data.current.toLocaleString()}</span>
           </div>
-          <p className="text-2xl font-bold">₹{data.thisWeek.toFixed(0)}</p>
-          <div className="flex items-center gap-1">
-            {weekChange >= 0 ? (
-              <TrendingUp className="w-3 h-3 text-red-500" />
-            ) : (
-              <TrendingDown className="w-3 h-3 text-green-500" />
-            )}
-            <span className={`text-xs font-medium ${weekChange >= 0 ? 'text-red-500' : 'text-green-500'}`}>
-              {Math.abs(weekChange).toFixed(0)}% vs last week
+
+          <div className="flex items-center gap-2 mt-4">
+            {isBetter ? <TrendingDown className="w-5 h-5 text-green-500" /> : <TrendingUp className="w-5 h-5 text-red-500" />}
+            <span className={`font-medium ${isBetter ? "text-green-600" : "text-red-600"}`}>
+              {Math.abs(percentage).toFixed(0)}% {isBetter ? "less" : "more"}
             </span>
+            <span className="text-muted-foreground text-sm">than previous period</span>
           </div>
         </div>
 
-        {/* This Month vs Last Month */}
-        <div className="space-y-2 p-4 rounded-lg bg-background/50 border border-border">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-purple-500" />
-            <span className="text-xs font-medium text-muted-foreground">This Month</span>
+        {/* Average */}
+        <div className="p-5 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20">
+          <div className="flex items-center gap-2 mb-2">
+            <IndianRupee className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-300">Daily Average</span>
           </div>
-          <p className="text-2xl font-bold">₹{data.thisMonth.toFixed(0)}</p>
-          <div className="flex items-center gap-1">
-            {monthChange >= 0 ? (
-              <TrendingUp className="w-3 h-3 text-red-500" />
-            ) : (
-              <TrendingDown className="w-3 h-3 text-green-500" />
-            )}
-            <span className={`text-xs font-medium ${monthChange >= 0 ? 'text-red-500' : 'text-green-500'}`}>
-              {Math.abs(monthChange).toFixed(0)}% vs last month
-            </span>
-          </div>
+          <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">₹{data.average.toFixed(0)}</p>
+          <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Average spent per day in this period</p>
         </div>
-
-        {/* Daily Average */}
-        <div className="space-y-2 p-4 rounded-lg bg-background/50 border border-border">
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-green-500" />
-            <span className="text-xs font-medium text-muted-foreground">Daily Average</span>
-          </div>
-          <p className="text-2xl font-bold">₹{data.dailyAverage.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground">Per day this month</p>
-        </div>
-
-        {/* Top Spending Day */}
-        {data.topSpendingDay.date && (
-          <div className="space-y-2 p-4 rounded-lg bg-background/50 border border-border">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-orange-500" />
-              <span className="text-xs font-medium text-muted-foreground">Highest Day</span>
-            </div>
-            <p className="text-2xl font-bold">₹{data.topSpendingDay.amount.toFixed(0)}</p>
-            <p className="text-xs text-muted-foreground">
-              {new Date(data.topSpendingDay.date).toLocaleDateString('en-IN', { 
-                month: 'short', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>
-        )}
       </div>
     </Card>
   )

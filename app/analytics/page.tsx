@@ -2,17 +2,20 @@
 
 import { useAuth } from "@/components/auth/auth-provider"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import MonthlyOverview from "@/components/analytics/monthly-overview"
 import CategoryAnalytics from "@/components/analytics/category-analytics"
 import SpendingTrends from "@/components/analytics/spending-trends"
-import PDFExport from "@/components/analytics/pdf-export"
 import { BarChart3 } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { startOfMonth, endOfMonth, setMonth, setYear } from "date-fns"
 
 export default function AnalyticsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
 
   useEffect(() => {
     if (!loading && !user) {
@@ -30,6 +33,30 @@ export default function AnalyticsPage() {
 
   if (!user) return null
 
+  // Generate Year Options (Current Year - 5 to Current Year + 1)
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 7 }, (_, i) => currentYear - 5 + i)
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ]
+
+  const handleMonthChange = (monthIndex: string) => {
+    setSelectedDate(prev => setMonth(prev, parseInt(monthIndex)))
+  }
+
+  const handleYearChange = (yearStr: string) => {
+    setSelectedDate(prev => setYear(prev, parseInt(yearStr)))
+  }
+
+  // Derive dateRange for children components
+  // This allows them to reuse their "custom date range" logic effortlessly
+  const dateRange = {
+    from: startOfMonth(selectedDate),
+    to: endOfMonth(selectedDate)
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -37,21 +64,52 @@ export default function AnalyticsPage() {
         <div className="flex items-center gap-3">
           <BarChart3 className="w-7 h-7 text-primary" />
           <div>
+            <h1 className="text-xl font-bold tracking-tight">Analytics</h1>
             <p className="text-sm text-muted-foreground">Insights into your spending patterns</p>
           </div>
         </div>
-        <div className="flex-shrink-0">
-          <PDFExport />
+
+        <div className="flex gap-2 w-full sm:w-auto">
+          {/* Month Select */}
+          <Select
+            value={selectedDate.getMonth().toString()}
+            onValueChange={handleMonthChange}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month, index) => (
+                <SelectItem key={month} value={index.toString()}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Year Select */}
+          <Select
+            value={selectedDate.getFullYear().toString()}
+            onValueChange={handleYearChange}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {/* Monthly Overview - Primary Section */}
-      <MonthlyOverview />
-
-      {/* Category & Trends */}
-      <CategoryAnalytics />
-      
-      <SpendingTrends />
+      {/* Components receiving the calculated dateRange prop */}
+      <MonthlyOverview dateRange={dateRange} />
+      <CategoryAnalytics dateRange={dateRange} />
+      <SpendingTrends dateRange={dateRange} />
     </div>
   )
 }

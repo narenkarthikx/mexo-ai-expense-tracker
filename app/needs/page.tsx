@@ -8,69 +8,95 @@ import DashboardLayout from "@/components/layout/dashboard-layout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Trash2, Loader, ShoppingCart, Flag } from "lucide-react"
+import { Plus, Trash2, Loader, ShoppingCart, Flag, Check, AlertTriangle } from "lucide-react"
 import { createClient } from "@/lib/supabase-client"
 import { Spinner } from "@/components/ui/spinner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 
 interface WishlistItem {
   id: string
   item_name: string
   estimated_cost: number
   priority: string
+  category: string
+}
+
+interface Budget {
+  category: string
+  limit: number
 }
 
 const PRIORITY_CONFIG = {
   high: {
-    color: "from-red-500 to-red-600",
+    color: "text-red-600",
     bg: "bg-red-50 dark:bg-red-900/20",
-    text: "text-red-700 dark:text-red-300",
+    border: "border-l-red-500",
   },
   medium: {
-    color: "from-yellow-500 to-yellow-600",
+    color: "text-yellow-600",
     bg: "bg-yellow-50 dark:bg-yellow-900/20",
-    text: "text-yellow-700 dark:text-yellow-300",
+    border: "border-l-yellow-500",
   },
   low: {
-    color: "from-green-500 to-green-600",
+    color: "text-green-600",
     bg: "bg-green-50 dark:bg-green-900/20",
-    text: "text-green-700 dark:text-green-300",
+    border: "border-l-green-500",
   },
 }
 
-export default function NeedsPage() {
+const DEFAULT_CATEGORIES = [
+  "Groceries", "Dining", "Transportation", "Shopping", "Healthcare",
+  "Entertainment", "Utilities", "Travel", "Gas", "Other"
+]
+
+export default function ShoppingListPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { toast } = useToast()
+
   const [items, setItems] = useState<WishlistItem[]>([])
+  const [budgets, setBudgets] = useState<Budget[]>([])
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES)
   const [loading, setLoading] = useState(true)
+
+  // Form State
   const [itemName, setItemName] = useState("")
   const [estimatedCost, setEstimatedCost] = useState("")
   const [priority, setPriority] = useState("medium")
+  const [category, setCategory] = useState("Shopping")
+
   const supabase = createClient()
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/")
     } else if (user) {
-      fetchWishlist()
+      loadData()
     }
   }, [user, authLoading, router])
 
-  const fetchWishlist = async () => {
+  const loadData = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data, error } = await supabase
+      // Load Categories
+      const { data: catData } = await supabase.from('user_categories').select('categories').eq('user_id', user.id).single()
+      if (catData?.categories) setCategories(catData.categories)
+
+      // Load Wishlist
+      const { data: listData } = await supabase
         .from("wishlist")
         .select("*")
         .eq("user_id", user.id)
         .order("priority", { ascending: true })
 
-      if (!error && data) {
-        setItems(data)
-      }
+      // Load Budgets for impact calc
+      const { data: budgetData } = await supabase.from("budgets").select("category, limit").eq("user_id", user.id)
+
+      if (listData) setItems(listData)
+      if (budgetData) setBudgets(budgetData)
     } finally {
       setLoading(false)
     }
@@ -81,25 +107,27 @@ export default function NeedsPage() {
     if (!itemName) return
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { error } = await supabase.from("wishlist").insert([
-        {
-          user_id: user.id,
-          item_name: itemName,
-          estimated_cost: estimatedCost ? Number.parseFloat(estimatedCost) : null,
-          priority,
-        },
-      ])
+      const { error } = await supabase.from("wishlist").insert([{
+        user_id: user.id,
+        item_name: itemName,
+        estimated_cost: estimatedCost ? Number.parseFloat(estimatedCost) : 0,
+        priority,
+        category
+      }])
 
       if (!error) {
         setItemName("")
         setEstimatedCost("")
         setPriority("medium")
-        await fetchWishlist()
+        setCategory("Shopping")
+        toast({ title: "Item Planned", description: "Added to your shopping list." })
+        await loadData()
+      } else {
+        console.error("Insert error", error)
+        toast({ title: "Error", description: "Could not add item.", variant: "destructive" })
       }
     } catch (err) {
       console.error("Error adding item:", err)
@@ -108,13 +136,38 @@ export default function NeedsPage() {
 
   const handleDeleteItem = async (id: string) => {
     const { error } = await supabase.from("wishlist").delete().eq("id", id)
-
     if (!error) {
       setItems(items.filter((i) => i.id !== id))
     }
   }
 
-  if (authLoading) {
+  const handlePurchase = async (item: WishlistItem) => {
+    if (!confirm(`Mark "${item.item_name}" as purchased? This will move it to Expenses.`)) return
+
+    try {
+      const { error: expError } = await supabase.from("expenses").insert([{
+        user_id: user?.id,
+        amount: item.estimated_cost,
+        description: item.item_name,
+        category: item.category || "Shopping",
+        date: new Date().toISOString().split("T")[0],
+        processing_status: "completed"
+      }])
+
+      if (expError) throw expError
+
+      // Delete from wishlist
+      await handleDeleteItem(item.id)
+
+      toast({ title: "Purchased!", description: "Moved to expenses." })
+      router.refresh()
+      window.dispatchEvent(new Event('expense-added')) // Update dashboard if needed
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to move to expenses.", variant: "destructive" })
+    }
+  }
+
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Spinner />
@@ -124,85 +177,71 @@ export default function NeedsPage() {
 
   if (!user) return null
 
-  const totalEstimated = items.reduce((acc, item) => acc + (item.estimated_cost || 0), 0)
-  const highPriority = items.filter((i) => i.priority === "high").length
-
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-2">
           <ShoppingCart className="w-7 h-7 text-primary" />
           <div>
-            
-            <p className="text-sm text-muted-foreground">Plan and track future purchases</p>
+            <h1 className="text-xl font-bold tracking-tight">Shopping List</h1>
+            <p className="text-sm text-muted-foreground">Future Intent & Impact</p>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="p-4 text-center bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <p className="text-2xl font-bold text-primary">{items.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">Items</p>
-          </Card>
-          <Card className="p-4 text-center bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{highPriority}</p>
-            <p className="text-xs text-muted-foreground mt-1">High Priority</p>
-          </Card>
-          <Card className="p-4 text-center bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{totalEstimated.toFixed(0)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Total Cost</p>
-          </Card>
-        </div>
-
-        {/* Items List First */}
-        {loading ? (
-          <Card className="p-12 flex items-center justify-center">
-            <Loader className="w-6 h-6 animate-spin text-primary" />
-          </Card>
-        ) : items.length === 0 ? (
-          <Card className="p-8 text-center bg-gradient-to-br from-muted/30 to-muted/10">
-            <ShoppingCart className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-            <p className="font-medium text-foreground">Your list is empty</p>
-            <p className="text-sm text-muted-foreground mt-1">Add items you want to buy below</p>
+        {/* Empty State / List */}
+        {items.length === 0 ? (
+          <Card className="p-12 text-center bg-gradient-to-br from-muted/30 to-muted/10 border-dashed">
+            <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-40" />
+            <h3 className="text-lg font-medium text-foreground">Your list is empty</h3>
+            <p className="text-muted-foreground mt-2 mb-6">Plan purchases before you spend to avoid budget surprises.</p>
+            <Button onClick={() => document.getElementById('add-item-form')?.focus()} variant="outline">
+              Add Planned Item
+            </Button>
           </Card>
         ) : (
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">YOUR ITEMS ({items.length})</h3>
+          <div className="space-y-4">
             {items.map((item) => {
               const config = PRIORITY_CONFIG[item.priority as keyof typeof PRIORITY_CONFIG] || PRIORITY_CONFIG.medium
+              const itemBudget = budgets.find(b => b.category === item.category)
+              const impact = itemBudget && itemBudget.limit > 0 ? (item.estimated_cost / itemBudget.limit) * 100 : 0
+              const isHighImpact = impact > 25
+
               return (
-                <Card
-                  key={item.id}
-                  className="p-4 transition-all group hover:shadow-md border-l-4"
-                  style={{ 
-                    borderLeftColor: item.priority === 'high' ? 'rgb(239, 68, 68)' : item.priority === 'medium' ? 'rgb(234, 179, 8)' : 'rgb(34, 197, 94)' 
-                  }}
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-2 rounded-lg ${config.bg}`}>
-                        <Flag className="w-4 h-4" style={{ color: item.priority === 'high' ? 'rgb(239, 68, 68)' : item.priority === 'medium' ? 'rgb(234, 179, 8)' : 'rgb(34, 197, 94)' }} />
+                <Card key={item.id} className={`p-4 group relative overflow-hidden border-l-4 ${config.border} hover:shadow-md transition-all`}>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${config.bg} ${config.color}`}>
+                          {item.priority} Priority
+                        </span>
+                        <span className="text-xs text-muted-foreground">• {item.category}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground truncate">{item.item_name}</p>
-                        <div className="flex items-center gap-3 mt-0.5">
-                          {item.estimated_cost > 0 && (
-                            <span className="text-sm font-medium text-primary">₹{item.estimated_cost.toFixed(0)}</span>
-                          )}
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${config.bg} ${config.text}`}>
-                            {item.priority}
+
+                      <h3 className="font-semibold text-lg">{item.item_name}</h3>
+
+                      {/* Budget Impact Warning */}
+                      {itemBudget && (
+                        <div className="flex items-center gap-1.5 mt-2 text-xs">
+                          {isHighImpact ? <AlertTriangle className="w-3.5 h-3.5 text-orange-500" /> : <div className="w-3.5" />}
+                          <span className={isHighImpact ? "text-orange-600 font-medium" : "text-muted-foreground"}>
+                            Uses {impact.toFixed(0)}% of {item.category} budget
                           </span>
                         </div>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-lg font-bold">₹{item.estimated_cost.toFixed(0)}</p>
+                      <div className="flex items-center justify-end gap-1 mt-3">
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-green-600" onClick={() => handlePurchase(item)} title="Mark as Purchased">
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteItem(item.id)} title="Remove">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteItem(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-destructive hover:bg-destructive/10 rounded transition-all"
-                      title="Remove item"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 </Card>
               )
@@ -210,48 +249,50 @@ export default function NeedsPage() {
           </div>
         )}
 
-        {/* Add Item Form - Bottom */}
-        <Card className="p-5 bg-gradient-to-br from-primary/5 to-primary/0 border-primary/20">
-          <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+        {/* Add Item Form */}
+        <Card className="p-6 bg-muted/20 border-primary/10 mt-8">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
             <Plus className="w-5 h-5 text-primary" />
-            Add New Item
+            Add Planned Item
           </h3>
-          <form onSubmit={handleAddItem} className="space-y-3">
-            <Input
-              type="text"
-              placeholder="Item name (e.g., Winter Jacket)"
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              className="h-10"
-              required
-            />
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-1">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
-                  <Input
-                    type="number"
-                    placeholder="Cost"
-                    value={estimatedCost}
-                    onChange={(e) => setEstimatedCost(e.target.value)}
-                    step="100"
-                    className="pl-7 h-10"
-                  />
-                </div>
+          <form id="add-item-form" onSubmit={handleAddItem} className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                placeholder="Item name (e.g., Winter Jacket)"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                required
+              />
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-muted-foreground">₹</span>
+                <Input
+                  type="number"
+                  placeholder="Cost"
+                  value={estimatedCost}
+                  onChange={(e) => setEstimatedCost(e.target.value)}
+                  className="pl-7"
+                />
               </div>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="col-span-1 px-3 py-2 border border-input rounded-lg bg-background text-sm"
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-              <Button type="submit" className="col-span-1 h-10">
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">High Priority</SelectItem>
+                  <SelectItem value="medium">Medium Priority</SelectItem>
+                  <SelectItem value="low">Low Priority</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="submit">Add to List</Button>
             </div>
           </form>
         </Card>

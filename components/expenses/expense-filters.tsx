@@ -41,7 +41,7 @@ interface ExpenseFiltersProps {
 export default function ExpenseFilters({ onFiltersChange }: ExpenseFiltersProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
-  const [dateFilter, setDateFilter] = useState("all")
+  const [dateFilter, setDateFilter] = useState("month")
   const [dateRange, setDateRange] = useState<{ start?: string, end?: string }>({})
   const [showDateInputs, setShowDateInputs] = useState(false)
   const supabase = createClient()
@@ -59,7 +59,7 @@ export default function ExpenseFilters({ onFiltersChange }: ExpenseFiltersProps)
   const handleDateFilterChange = (value: string) => {
     setDateFilter(value)
     setShowDateInputs(value === 'custom')
-    
+
     if (value !== 'custom') {
       setDateRange({})
     }

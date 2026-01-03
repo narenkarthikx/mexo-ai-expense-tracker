@@ -20,7 +20,7 @@ export default function BudgetPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-background text-primary">
         <Spinner />
       </div>
     )
@@ -30,16 +30,19 @@ export default function BudgetPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-2">
-          <PiggyBank className="w-7 h-7 text-primary" />
+      <div className="space-y-6 max-w-5xl mx-auto pb-20">
+        {/* Header Section */}
+        <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+          <div className="p-2 bg-primary/10 rounded-xl">
+            <PiggyBank className="w-6 h-6 text-primary" />
+          </div>
           <div>
-            <p className="text-sm text-muted-foreground">Set spending limits and monitor your budget health</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Budget Planning</h1>
+            <p className="text-sm text-muted-foreground">Set spending limits and stay in control of your finances.</p>
           </div>
         </div>
 
-        {/* Budget Manager - Primary Action */}
+        {/* Budget Manager Component */}
         <BudgetManager />
       </div>
     </DashboardLayout>

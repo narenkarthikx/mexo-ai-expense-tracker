@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase-client"
 import { Plus, Upload, Loader2, Camera, Pencil } from "lucide-react"
 
 const DEFAULT_CATEGORIES = [
-  "Groceries", "Dining", "Transportation", "Shopping", "Healthcare", 
+  "Groceries", "Dining", "Transportation", "Shopping", "Healthcare",
   "Entertainment", "Utilities", "Travel", "Gas", "Other"
 ]
 
@@ -37,7 +37,7 @@ export default function SimpleExpenseForm() {
 
   async function loadCategories() {
     if (!user) return
-    
+
     try {
       const { data, error } = await supabase
         .from('user_categories')
@@ -112,7 +112,7 @@ export default function SimpleExpenseForm() {
         console.log("Expense added successfully:", data)
         toast({
           title: "✅ Success!",
-          description: `Added $${amount} expense successfully`,
+          description: `Added ₹${amount} expense successfully`,
         })
         setAmount("")
         setDescription("")
@@ -135,7 +135,7 @@ export default function SimpleExpenseForm() {
   // Simple receipt upload
   const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    
+
     console.log("handleReceiptUpload triggered", {
       hasFile: !!file,
       fileName: file?.name,
@@ -143,12 +143,12 @@ export default function SimpleExpenseForm() {
       fileSize: file?.size,
       source: e.target === cameraInputRef.current ? 'camera' : 'file'
     })
-    
+
     if (!file) {
       console.log("No file selected")
       return
     }
-    
+
     if (!user) {
       toast({
         title: "Authentication required",
@@ -188,7 +188,7 @@ export default function SimpleExpenseForm() {
 
     console.log("File validation passed, processing...")
     await processReceipt(file)
-    
+
     // Reset inputs after processing
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (cameraInputRef.current) cameraInputRef.current.value = ''
@@ -197,7 +197,7 @@ export default function SimpleExpenseForm() {
   // Process receipt image (shared by both upload and camera)
   const processReceipt = async (file: File) => {
     if (!user) return
-    
+
     console.log("Starting receipt upload:", file.name, "Size:", file.size)
     setReceiptLoading(true)
 
@@ -237,13 +237,13 @@ export default function SimpleExpenseForm() {
           } else {
             // Show more helpful error for rate limits
             const errorMsg = result.error || "Could not process receipt"
-            const isRateLimit = errorMsg.toLowerCase().includes('quota') || 
-                               errorMsg.toLowerCase().includes('limit') ||
-                               errorMsg.toLowerCase().includes('rate')
-            
+            const isRateLimit = errorMsg.toLowerCase().includes('quota') ||
+              errorMsg.toLowerCase().includes('limit') ||
+              errorMsg.toLowerCase().includes('rate')
+
             toast({
               title: isRateLimit ? "⏳ Rate Limit" : "❌ Processing Failed",
-              description: isRateLimit 
+              description: isRateLimit
                 ? "API limit reached. Please try again in a few minutes or use manual entry."
                 : errorMsg,
               variant: "destructive",
@@ -291,7 +291,7 @@ export default function SimpleExpenseForm() {
           const canvas = document.createElement('canvas')
           let width = img.width
           let height = img.height
-          
+
           // Resize if too large
           const maxDimension = 1200
           if (width > maxDimension || height > maxDimension) {
@@ -303,13 +303,13 @@ export default function SimpleExpenseForm() {
               height = maxDimension
             }
           }
-          
+
           canvas.width = width
           canvas.height = height
-          
+
           const ctx = canvas.getContext('2d')
           ctx?.drawImage(img, 0, 0, width, height)
-          
+
           canvas.toBlob(
             (blob) => {
               if (blob) {
@@ -340,7 +340,7 @@ export default function SimpleExpenseForm() {
       inputExists: !!cameraInputRef.current,
       disabled: receiptLoading
     })
-    
+
     if (!cameraSupported) {
       toast({
         title: "Camera not available",
@@ -349,7 +349,7 @@ export default function SimpleExpenseForm() {
       })
       return
     }
-    
+
     // Directly trigger camera without toast (toast might block on mobile)
     console.log("Triggering camera input click...")
     cameraInputRef.current?.click()
@@ -384,7 +384,7 @@ export default function SimpleExpenseForm() {
             </h3>
             <Badge className="bg-primary/10 text-primary border-primary/20">Recommended</Badge>
           </div>
-          
+
           {/* Hidden file inputs */}
           <input
             ref={fileInputRef}
@@ -394,7 +394,7 @@ export default function SimpleExpenseForm() {
             disabled={receiptLoading}
             className="hidden"
           />
-          
+
           <input
             ref={cameraInputRef}
             type="file"
@@ -417,7 +417,7 @@ export default function SimpleExpenseForm() {
               <Camera className="w-4 h-4 mr-2" />
               {cameraSupported ? 'Take Photo' : 'No Camera'}
             </Button>
-            
+
             <Button
               type="button"
               onClick={handleFileClick}
@@ -430,14 +430,14 @@ export default function SimpleExpenseForm() {
               Upload File
             </Button>
           </div>
-          
+
           {receiptLoading && (
             <div className="flex items-center gap-2 text-primary text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>AI processing receipt...</span>
             </div>
           )}
-          
+
           <p className="text-xs text-muted-foreground leading-relaxed">
             📸 Capture with camera or 📤 upload from device • AI extracts details automatically
           </p>
@@ -502,8 +502,8 @@ export default function SimpleExpenseForm() {
             />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={loading || !amount}
             className="w-full h-10"
           >
